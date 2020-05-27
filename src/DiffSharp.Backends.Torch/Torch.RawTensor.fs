@@ -41,8 +41,8 @@ module internal Utils =
 
 /// This is the base class for all RawTensorXyz tuypes.
 /// All type-independent operations are implemented directly on this class. 
-type TorchRawTensor(tt: TorchTensor, shape: int[], dtype, device) =
-    inherit RawTensor(shape, dtype, device, Backend.Torch)
+type TorchRawTensor(tt: TorchTensor, shape: int[], dtype, device, ?mutability) =
+    inherit RawTensor(shape, dtype, device, Backend.Torch, defaultArg mutability Immutable)
 
     do 
        if tt.Type <> toTorchType dtype then
@@ -784,7 +784,7 @@ type TorchRawTensor(tt: TorchTensor, shape: int[], dtype, device) =
                 DoubleTensor.From (data, toTorchShape shape) 
             | DType.Other _ -> failwith "deserialize other type in torch nyi"
 
-        TorchRawTensor(tt, shape, dtype, device)
+        TorchRawTensor(tt, shape, dtype, device, Immutable)
 
     interface System.Runtime.Serialization.ISerializable with
 
@@ -814,7 +814,7 @@ type TorchStatics<'T, 'T2>
     override _.Seed(seed) = Torch.SetSeed(int64 seed)
     override _.Zero(device) = TorchRawTensor(from0(conv(zero)), Shape.scalar, dtype, device) :> _ 
     override _.One(device) = TorchRawTensor(from0(conv(one)), Shape.scalar, dtype, device) :> _
-    override _.Zeros(shape:int[], device) = TorchRawTensor(zeros(toTorchShape shape, toTorchDevice device), shape, dtype, device) :> _
+    override _.Zeros(shape:int[], device, mutability) = TorchRawTensor(zeros(toTorchShape shape, toTorchDevice device), shape, dtype, device, mutability) :> _
     override _.Ones(shape:int[], device) = TorchRawTensor(ones(toTorchShape shape, toTorchDevice device), shape, dtype, device) :> _
     override _.Random(shape:int[], device) = TorchRawTensor(random(toTorchShape shape, toTorchDevice device), shape, dtype, device) :> _
     override _.RandomNormal(shape:int[], device) = TorchRawTensor(randomN(toTorchShape shape, toTorchDevice device), shape, dtype, device) :> _

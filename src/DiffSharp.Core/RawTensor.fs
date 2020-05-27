@@ -12,7 +12,7 @@ type [<AbstractClass>]
 
     abstract Seed: seed:int -> unit
     abstract Zero: device: Device -> RawTensor
-    abstract Zeros: shape:int[] * device: Device -> RawTensor
+    abstract Zeros: shape:int[] * device: Device * mutability: Mutability -> RawTensor
     abstract One: device: Device -> RawTensor
     abstract Ones: shape:int[] * device: Device -> RawTensor
     abstract Full: shape:int[] * obj * device: Device -> RawTensor
@@ -59,8 +59,26 @@ type [<AbstractClass>]
             last <- Some (code, res)
             res
 
+and Mutability = 
+    | Immutable // born immutable
+    | Building // local initially mutable, may later change to immutable
+    | FinishedBuilding // local initially mutable, later changed to immutable
+    | Mutable // always mutable
+
 and [<AbstractClass>]
-    RawTensor(shape:int[], dtype:DType, device:Device, backend:Backend) =
+    RawTensor(shape:int[], dtype:DType, device:Device, backend:Backend, mutability: Mutability) =
+
+    let mutable mutability = mutability
+    member _.Mutability with get () = mutability
+
+    member t.Finish() =
+        match mutability with 
+        | Immutable -> invalidOp "the tensor was born immutable"
+        | FinishedBuilding -> invalidOp "the tensor was already finished"
+        | Mutable -> invalidOp "the tensor is permanently mutable"
+        | Building ->
+            mutability <- FinishedBuilding
+            t
 
     member t.Shape = shape
     member t.Dim = shape.Length
@@ -75,10 +93,10 @@ and [<AbstractClass>]
         let device = defaultArg device Device.Default
         statics.Zero(device)
 
-    static member Zeros(shape, ?dtype, ?device, ?backend) = 
+    static member Zeros(shape, ?dtype, ?device, ?backend, ?mutability) = 
         let statics = BackendStatics.Get(?dtype=dtype, ?backend=backend)
         let device = defaultArg device Device.Default
-        statics.Zeros(shape, device)
+        statics.Zeros(shape, device, defaultArg mutability Immutable)
 
     static member One(?dtype, ?device, ?backend) = 
         let statics = BackendStatics.Get(?dtype=dtype, ?backend=backend)
