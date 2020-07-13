@@ -52,9 +52,9 @@ RUN dotnet_sdk_version=3.1.301 \
     # Trigger first run experience by running arbitrary cmd
     && dotnet help
 
-# Copy notebooks
+# Copy notebooks (and all docs, but who case) across
 
-COPY ./notebooks/ ${HOME}/notebooks/
+COPY ./ ${HOME}/notebooks/
 
 # Copy package sources
 
