@@ -4,6 +4,8 @@
 DiffSharp: Differentiable Functional Programming
 ================================================
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dsyme/DiffSharp/gh-pages?filepath=notebooks/index.ipynb)
+
 DiffSharp is a functional [automatic differentiation](https://en.wikipedia.org/wiki/Automatic_differentiation) (AD) tensor-based library.
 
 AD allows exact and efficient calculation of derivatives, by systematically invoking the chain rule of calculus at the elementary operator

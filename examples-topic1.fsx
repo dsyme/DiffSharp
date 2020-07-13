@@ -1,4 +1,8 @@
+#r "nuget:RestoreSources=https://ci.appveyor.com/nuget/diffsharp"
+#r "nuget: DiffSharp-lite,0.9.5-local-200713"
 (**
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dsyme/DiffSharp/gh-pages?filepath=notebooks/examples-topic1.ipynb)
+
 Gradient Descent
 ================
 
@@ -35,7 +39,8 @@ let t x = dsharp.tensor x
 //   epsilon: threshold
 let rec gradientDescent f x eta epsilon =
     let g = dsharp.grad f x
-    if g.norm < epsilon then x 
+    // TODO: this should be norm
+    if g.sum() < epsilon then x 
     else gradientDescent f (x - eta * g) eta epsilon
 (**
 Let's find a minimum of $f(x, y) = (\sin x + \cos y)$.
@@ -44,7 +49,7 @@ let inline f (x:Tensor) =  sin x.[0] + cos x.[1]
 
 // Find the minimum of f
 // Start from (1, 1), step size 0.9, threshold 0.00001
-let xmin = gd f (t [1.; 1.]) (t 0.9) (t 0.00001)
+let xmin = gradientDescent f (t [1.; 1.]) (t 0.9) (t 0.00001)
 let fxmin = f xmin(* output: 
 val xmin : Tensor = tensor [ -1.570790759; 3.141591964 ]
 val fxmin : Tensor = tensor -2.0*)

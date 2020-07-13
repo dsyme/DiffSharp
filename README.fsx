@@ -33,14 +33,6 @@ This published version of the docs can be refreshed by
     popd 
 
 
-Typical URL and badges when docs are published:
-
-* `gh-pages` branch of DiffSharp/DiffSharp:  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/DiffSharp/DiffSharp/gh-pages)
-
-* `index.ipynb` for `dev` branch of DiffSharp/DiffSharp: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/DiffSharp/DiffSharp/gh-pages?filepath=notebooks/index.ipynb)
-
-
-
 # How it works
 
 Notebooks are generated for all .md and .fsx files under docs as part of the build.
