@@ -59,17 +59,16 @@
 <li>
 <p>Generate Docs (after building)</p>
 <p>rmdir /s /q ..\tmp
-git clone <a href="https://github.com/DiffSharp/DiffSharp">https://github.com/DiffSharp/DiffSharp</a> ../tmp/DiffSharp-docs -b tmpdocs --depth 1
+git clone <a href="https://github.com/dsyme/DiffSharp">https://github.com/dsyme/DiffSharp</a> ../tmp/DiffSharp-docs -b gh-pages --depth 1
 pushd ..\tmp\DiffSharp-docs
 git rm -fr *
-popd ....\DiffSharp
-..\FSharp.Formatting\src\FSharp.Formatting.CommandTool\bin\Debug\netcoreapp3.1\fsdocs.exe build --output ..\tmp\DiffSharp-docs
+popd</p>
+<p>..\FSharp.Formatting\src\FSharp.Formatting.CommandTool\bin\Debug\netcoreapp3.1\fsdocs.exe build --output ..\tmp\DiffSharp-docs
 pushd ..\tmp\DiffSharp-docs
 git add .
 git commit -a -m "commit docs"
-git push -f <a href="https://github.com/DiffSharp/DiffSharp">https://github.com/DiffSharp/DiffSharp</a> tmpdocs
-git push -f <a href="https://github.com/dsyme/DiffSharp">https://github.com/dsyme/DiffSharp</a> tmpdocs
-popd ....\DiffSharp</p>
+git push -f <a href="https://github.com/dsyme/DiffSharp">https://github.com/dsyme/DiffSharp</a> gh-pages
+popd</p>
 </li>
 </ol>
 <p>Typical URL and badges when docs are published:</p>
