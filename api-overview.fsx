@@ -1,7 +1,7 @@
 #r "nuget:RestoreSources=https://ci.appveyor.com/nuget/diffsharp"
 #r "nuget: DiffSharp-lite,0.9.5-local-200713"
 (**
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dsyme/DiffSharp/gh-pages?filepath=notebooks/api-overview.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dsyme/DiffSharp/gh-pages?filepath=api-overview.ipynb)
 
 API Overview
 ============

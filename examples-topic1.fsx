@@ -1,7 +1,7 @@
 #r "nuget:RestoreSources=https://ci.appveyor.com/nuget/diffsharp"
 #r "nuget: DiffSharp-lite,0.9.5-local-200713"
 (**
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dsyme/DiffSharp/gh-pages?filepath=notebooks/examples-topic1.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dsyme/DiffSharp/gh-pages?filepath=examples-topic1.ipynb)
 
 Gradient Descent
 ================
@@ -10,13 +10,13 @@ The [gradient descent algorithm](https://en.wikipedia.org/wiki/Gradient_descent)
 
 For a function $f: \mathbb{R}^n \to \mathbb{R}$, starting from an initial point $\mathbf{x}_0$, the method works by computing successive points in the function domain
 
-egin{equation}
+\begin{equation}
  \mathbf{x}_{n + 1} = \mathbf{x}_n - \eta \left( \nabla f \right)_{\mathbf{x}_n} \; ,
 \end{equation}
 
 where $\eta > 0$ is a small step size and $\left( \nabla f \right)_{\mathbf{x}_n}$ is the [gradient](https://en.wikipedia.org/wiki/Gradient) of $f$ evaluated at $\mathbf{x}_n$. The successive values of the function 
 
-egin{equation}
+\begin{equation}
  f(\mathbf{x}_0) \ge f(\mathbf{x}_1) \ge f(\mathbf{x}_2) \ge \dots
 \end{equation}
  
