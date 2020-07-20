@@ -1,5 +1,5 @@
 #r "nuget:RestoreSources=https://ci.appveyor.com/nuget/diffsharp"
-#r "nuget: DiffSharp-lite,0.9.5-local-200720"
+#r "nuget: DiffSharp-lite,0.9.5-local-200721"
 (**
 DiffSharp: Differentiable Functional Programming
 ================================================
