@@ -1,5 +1,5 @@
 #r "nuget:RestoreSources=https://ci.appveyor.com/nuget/diffsharp"
-#r "nuget: DiffSharp-lite,0.9.5-local-200713"
+#r "nuget: DiffSharp-lite,0.9.5-local-200720"
 (**
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dsyme/DiffSharp/gh-pages?filepath=gett-ingstarted-topic1.ipynb)
 

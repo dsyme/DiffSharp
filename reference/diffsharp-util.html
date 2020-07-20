@@ -19,8 +19,12 @@
     <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
     
-    <link type="text/css" rel="stylesheet" href="https://diffsharp.github.io/DiffSharp/misc/style.css" />
-    <script src="https://diffsharp.github.io/DiffSharp/misc/tips.js" type="text/javascript"></script>
+    <link type="text/css" rel="stylesheet" href="https://diffsharp.github.io/DiffSharp/content/style.css" />
+    <script src="https://diffsharp.github.io/DiffSharp/content/tips.js" type="text/javascript"></script>
+
+    <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+    <!-- END SEARCH BOX: this adds support for the search box -->
   </head>
   <body>
     <div class="container">
@@ -41,15 +45,15 @@
     Namespace: DiffSharp
   </p>
   <p>
-    Assembly: DiffSharp
+    Assembly: DiffSharp.Core.dll
   </p>
   <br/>
   <div class="xmldoc"></div>
   <div>
-    <h2>
-      Types and modules
-    </h2>
-    <table class="table table-bordered type-list module-list">
+    <h3>
+      Types and nested modules
+    </h3>
+    <table class="table type-list module-list">
       <thead>
         <tr>
           <td>
@@ -63,8 +67,10 @@
       <tbody>
         <tr>
           <td class="type-name">
-            <a href="diffsharp-util-globalnestinglevel.html">
-              GlobalNestingLevel
+            <a name="GlobalNestingLevel">
+              <a href="diffsharp-util-globalnestinglevel.html">
+                GlobalNestingLevel
+              </a>
             </a>
           </td>
           <td class="xmldoc">
@@ -73,8 +79,10 @@
         </tr>
         <tr>
           <td class="type-name">
-            <a href="diffsharp-util-nestinglevel.html">
-              NestingLevel
+            <a name="NestingLevel">
+              <a href="diffsharp-util-nestinglevel.html">
+                NestingLevel
+              </a>
             </a>
           </td>
           <td class="xmldoc">
@@ -83,8 +91,10 @@
         </tr>
         <tr>
           <td class="type-name">
-            <a href="diffsharp-util-random.html">
-              Random
+            <a name="Random">
+              <a href="diffsharp-util-random.html">
+                Random
+              </a>
             </a>
           </td>
           <td class="xmldoc">
@@ -93,8 +103,10 @@
         </tr>
         <tr>
           <td class="type-name">
-            <a href="diffsharp-util-shape.html">
-              Shape (Type)
+            <a name="Shape">
+              <a href="diffsharp-util-shape.html">
+                Shape (Type)
+              </a>
             </a>
           </td>
           <td class="xmldoc">
@@ -103,8 +115,10 @@
         </tr>
         <tr>
           <td class="type-name">
-            <a href="diffsharp-util-array.html">
-              Array
+            <a name="Array">
+              <a href="diffsharp-util-array.html">
+                Array
+              </a>
             </a>
           </td>
           <td class="xmldoc">
@@ -113,8 +127,10 @@
         </tr>
         <tr>
           <td class="type-name">
-            <a href="diffsharp-util-shapemodule.html">
-              Shape (Module)
+            <a name="Shape">
+              <a href="diffsharp-util-shapemodule.html">
+                Shape (Module)
+              </a>
             </a>
           </td>
           <td class="xmldoc">
@@ -128,913 +144,2700 @@
     <h3>
       Functions and values
     </h3>
-    <table class="table table-bordered member-list">
+    <table class="table member-list">
       <thead>
         <tr>
-          <td>
+          <td class="member-list-header">
             Function or value
           </td>
-          <td>
+          <td class="member-list-header">
             Description
           </td>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="allEqual">
             <div>
               <code onmouseout="hideTip(event, '14', 14)" onmouseover="showTip(event, '14', 14)">
-                allEqual(items)
+                allEqual items
               </code>
               <div class="tip" id="14">
-                <strong>
-                  Signature:
-                </strong>
-                items:seq&lt;&#39;a&gt; -&gt; bool
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                'a
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  allEqual items
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        items
+                      </b>
+                      :
+                      seq&lt;&#39;a&gt;
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  bool
+                  <br/>
+                  Signature: 
+                  items: seq&lt;&#39;a&gt; -&gt; bool
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  items
+                </code>
+                :
+                <code class="code-type">
+                  seq&lt;&#39;a&gt;
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              bool
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L85-85" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="array3D">
             <div>
               <code onmouseout="hideTip(event, '15', 15)" onmouseover="showTip(event, '15', 15)">
-                array3D(data)
+                array3D data
               </code>
               <div class="tip" id="15">
-                <strong>
-                  Signature:
-                </strong>
-                data:seq&lt;&#39;?71763&gt; -&gt; &#39;?71765 [,,]
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                '?71763, '?71764, '?71765
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  array3D data
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        data
+                      </b>
+                      :
+                      seq&lt;&#39;a&gt;
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  &#39;c [,,]
+                  <br/>
+                  Signature: 
+                  data: seq&lt;&#39;a&gt; -&gt; &#39;c [,,]
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            <p>Create a non-jagged 3D array from jagged data</p>
-
-
+            <p class='summary'>
+ Create a non-jagged 3D array from jagged data
+</p>
+            <br/>
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  data
+                </code>
+                :
+                <code class="code-type">
+                  seq&lt;&#39;a&gt;
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              &#39;c [,,]
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L527-527" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="array4D">
             <div>
               <code onmouseout="hideTip(event, '16', 16)" onmouseover="showTip(event, '16', 16)">
-                array4D(data)
+                array4D data
               </code>
               <div class="tip" id="16">
-                <strong>
-                  Signature:
-                </strong>
-                data:seq&lt;&#39;?71767&gt; -&gt; &#39;?71770 [,,,]
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                '?71767, '?71768, '?71769, '?71770
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  array4D data
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        data
+                      </b>
+                      :
+                      seq&lt;&#39;a&gt;
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  &#39;d [,,,]
+                  <br/>
+                  Signature: 
+                  data: seq&lt;&#39;a&gt; -&gt; &#39;d [,,,]
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            <p>Create a non-jagged 4D array from jagged data</p>
-
-
+            <p class='summary'>
+ Create a non-jagged 4D array from jagged data
+</p>
+            <br/>
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  data
+                </code>
+                :
+                <code class="code-type">
+                  seq&lt;&#39;a&gt;
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              &#39;d [,,,]
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L538-538" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="arrayND">
             <div>
               <code onmouseout="hideTip(event, '17', 17)" onmouseover="showTip(event, '17', 17)">
                 arrayND shape f
               </code>
               <div class="tip" id="17">
-                <strong>
-                  Signature:
-                </strong>
-                shape:Shape -&gt; f:(int [] -&gt; &#39;e) -&gt; obj
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                'e
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  arrayND shape f
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        shape
+                      </b>
+                      :
+                      Shape
+                    </li>
+                    <li>
+                      <b>
+                        f
+                      </b>
+                      :
+                      int [] -&gt; &#39;e
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  obj
+                  <br/>
+                  Signature: 
+                  shape: Shape -&gt; f: (int [] -&gt; &#39;e) -&gt; obj
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  shape
+                </code>
+                :
+                <code class="code-type">
+                  Shape
+                </code>
+              </li>
+              <li>
+                <code>
+                  f
+                </code>
+                :
+                <code class="code-type">
+                  int [] -&gt; &#39;e
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              obj
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L549-549" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="boundsToLocation">
             <div>
               <code onmouseout="hideTip(event, '18', 18)" onmouseover="showTip(event, '18', 18)">
-                boundsToLocation(bounds)
+                boundsToLocation bounds
               </code>
               <div class="tip" id="18">
-                <strong>
-                  Signature:
-                </strong>
-                bounds:int [,] -&gt; int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  boundsToLocation bounds
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        bounds
+                      </b>
+                      :
+                      int [,]
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int []
+                  <br/>
+                  Signature: 
+                  bounds: int [,] -&gt; int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  bounds
+                </code>
+                :
+                <code class="code-type">
+                  int [,]
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L484-484" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="boundsToShape">
             <div>
               <code onmouseout="hideTip(event, '19', 19)" onmouseover="showTip(event, '19', 19)">
-                boundsToShape(bounds)
+                boundsToShape bounds
               </code>
               <div class="tip" id="19">
-                <strong>
-                  Signature:
-                </strong>
-                bounds:int [,] -&gt; int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  boundsToShape bounds
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        bounds
+                      </b>
+                      :
+                      int [,]
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int []
+                  <br/>
+                  Signature: 
+                  bounds: int [,] -&gt; int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  bounds
+                </code>
+                :
+                <code class="code-type">
+                  int [,]
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L487-487" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="checkValidIndex">
             <div>
               <code onmouseout="hideTip(event, '20', 20)" onmouseover="showTip(event, '20', 20)">
                 checkValidIndex shape index
               </code>
               <div class="tip" id="20">
-                <strong>
-                  Signature:
-                </strong>
-                shape:Shape -&gt; index:int [] -&gt; unit
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  checkValidIndex shape index
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        shape
+                      </b>
+                      :
+                      Shape
+                    </li>
+                    <li>
+                      <b>
+                        index
+                      </b>
+                      :
+                      int []
+                    </li>
+                  </ul>
+                  <br/>
+                  Signature: 
+                  shape: Shape -&gt; index: int [] -&gt; unit
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  shape
+                </code>
+                :
+                <code class="code-type">
+                  Shape
+                </code>
+              </li>
+              <li>
+                <code>
+                  index
+                </code>
+                :
+                <code class="code-type">
+                  int []
+                </code>
+              </li>
+            </ul>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L501-501" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="copyKeys">
             <div>
               <code onmouseout="hideTip(event, '21', 21)" onmouseover="showTip(event, '21', 21)">
-                copyKeys(dictionary)
+                copyKeys dictionary
               </code>
               <div class="tip" id="21">
-                <strong>
-                  Signature:
-                </strong>
-                dictionary:Dictionary&lt;&#39;a, &#39;b&gt; -&gt; &#39;a []
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                'a, 'b
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  copyKeys dictionary
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        dictionary
+                      </b>
+                      :
+                      Dictionary&lt;&#39;a, &#39;b&gt;
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  &#39;a []
+                  <br/>
+                  Signature: 
+                  dictionary: Dictionary&lt;&#39;a, &#39;b&gt; -&gt; &#39;a []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  dictionary
+                </code>
+                :
+                <code class="code-type">
+                  Dictionary&lt;&#39;a, &#39;b&gt;
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              &#39;a []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L797-797" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="copyValues">
             <div>
               <code onmouseout="hideTip(event, '22', 22)" onmouseover="showTip(event, '22', 22)">
-                copyValues(dictionary)
+                copyValues dictionary
               </code>
               <div class="tip" id="22">
-                <strong>
-                  Signature:
-                </strong>
-                dictionary:Dictionary&lt;&#39;a, &#39;b&gt; -&gt; &#39;b []
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                'a, 'b
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  copyValues dictionary
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        dictionary
+                      </b>
+                      :
+                      Dictionary&lt;&#39;a, &#39;b&gt;
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  &#39;b []
+                  <br/>
+                  Signature: 
+                  dictionary: Dictionary&lt;&#39;a, &#39;b&gt; -&gt; &#39;b []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  dictionary
+                </code>
+                :
+                <code class="code-type">
+                  Dictionary&lt;&#39;a, &#39;b&gt;
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              &#39;b []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L802-802" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="cumulativeSum">
             <div>
               <code onmouseout="hideTip(event, '23', 23)" onmouseover="showTip(event, '23', 23)">
-                cumulativeSum(a)
+                cumulativeSum a
               </code>
               <div class="tip" id="23">
-                <strong>
-                  Signature:
-                </strong>
-                a:^?71725 [] -&gt; ^?71726 []
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                ^?71725, ^?71726
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  cumulativeSum a
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        a
+                      </b>
+                      :
+                      ^a []
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  ^b []
+                  <br/>
+                  Signature: 
+                  a: ^a [] -&gt; ^b []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  a
+                </code>
+                :
+                <code class="code-type">
+                  ^a []
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              ^b []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L30-30" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="dataOfValues">
             <div>
               <code onmouseout="hideTip(event, '24', 24)" onmouseover="showTip(event, '24', 24)">
-                dataOfValues(...)
+                dataOfValues ofFloat32 ofFloat64 ofInt8 ofInt16 ofInt32 ofInt64 ofBool ofByte value
               </code>
               <div class="tip" id="24">
-                <strong>
-                  Signature:
-                </strong>
-                ofFloat32:(float32 -&gt; ^T) -&gt; ofFloat64:(double -&gt; ^T) -&gt; ofInt8:(int8 -&gt; ^T) -&gt; ofInt16:(int16 -&gt; ^T) -&gt; ofInt32:(int32 -&gt; ^T) -&gt; ofInt64:(int64 -&gt; ^T) -&gt; ofBool:(bool -&gt; ^T) -&gt; ofByte:(byte -&gt; ^T) -&gt; value:obj -&gt; ^T [] * int []
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                ^T
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  dataOfValues ofFloat32 ofFloat64 ofInt8 ofInt16 ofInt32 ofInt64 ofBool ofByte value
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        ofFloat32
+                      </b>
+                      :
+                      float32 -&gt; ^T
+                    </li>
+                    <li>
+                      <b>
+                        ofFloat64
+                      </b>
+                      :
+                      double -&gt; ^T
+                    </li>
+                    <li>
+                      <b>
+                        ofInt8
+                      </b>
+                      :
+                      int8 -&gt; ^T
+                    </li>
+                    <li>
+                      <b>
+                        ofInt16
+                      </b>
+                      :
+                      int16 -&gt; ^T
+                    </li>
+                    <li>
+                      <b>
+                        ofInt32
+                      </b>
+                      :
+                      int32 -&gt; ^T
+                    </li>
+                    <li>
+                      <b>
+                        ofInt64
+                      </b>
+                      :
+                      int64 -&gt; ^T
+                    </li>
+                    <li>
+                      <b>
+                        ofBool
+                      </b>
+                      :
+                      bool -&gt; ^T
+                    </li>
+                    <li>
+                      <b>
+                        ofByte
+                      </b>
+                      :
+                      byte -&gt; ^T
+                    </li>
+                    <li>
+                      <b>
+                        value
+                      </b>
+                      :
+                      obj
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  ^T [] * int []
+                  <br/>
+                  Signature: 
+                  ofFloat32: (float32 -&gt; ^T) -&gt; ofFloat64: (double -&gt; ^T) -&gt; ofInt8: (int8 -&gt; ^T) -&gt; ofInt16: (int16 -&gt; ^T) -&gt; ofInt32: (int32 -&gt; ^T) -&gt; ofInt64: (int64 -&gt; ^T) -&gt; ofBool: (bool -&gt; ^T) -&gt; ofByte: (byte -&gt; ^T) -&gt; value: obj -&gt; ^T [] * int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  ofFloat32
+                </code>
+                :
+                <code class="code-type">
+                  float32 -&gt; ^T
+                </code>
+              </li>
+              <li>
+                <code>
+                  ofFloat64
+                </code>
+                :
+                <code class="code-type">
+                  double -&gt; ^T
+                </code>
+              </li>
+              <li>
+                <code>
+                  ofInt8
+                </code>
+                :
+                <code class="code-type">
+                  int8 -&gt; ^T
+                </code>
+              </li>
+              <li>
+                <code>
+                  ofInt16
+                </code>
+                :
+                <code class="code-type">
+                  int16 -&gt; ^T
+                </code>
+              </li>
+              <li>
+                <code>
+                  ofInt32
+                </code>
+                :
+                <code class="code-type">
+                  int32 -&gt; ^T
+                </code>
+              </li>
+              <li>
+                <code>
+                  ofInt64
+                </code>
+                :
+                <code class="code-type">
+                  int64 -&gt; ^T
+                </code>
+              </li>
+              <li>
+                <code>
+                  ofBool
+                </code>
+                :
+                <code class="code-type">
+                  bool -&gt; ^T
+                </code>
+              </li>
+              <li>
+                <code>
+                  ofByte
+                </code>
+                :
+                <code class="code-type">
+                  byte -&gt; ^T
+                </code>
+              </li>
+              <li>
+                <code>
+                  value
+                </code>
+                :
+                <code class="code-type">
+                  obj
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              ^T [] * int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L717-717" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="dataOfValuesForBool">
             <div>
               <code onmouseout="hideTip(event, '25', 25)" onmouseover="showTip(event, '25', 25)">
-                dataOfValuesForBool(value)
+                dataOfValuesForBool value
               </code>
               <div class="tip" id="25">
-                <strong>
-                  Signature:
-                </strong>
-                value:obj -&gt; bool [] * int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  dataOfValuesForBool value
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        value
+                      </b>
+                      :
+                      obj
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  bool [] * int []
+                  <br/>
+                  Signature: 
+                  value: obj -&gt; bool [] * int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  value
+                </code>
+                :
+                <code class="code-type">
+                  obj
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              bool [] * int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L764-764" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="dataOfValuesForByte">
             <div>
               <code onmouseout="hideTip(event, '26', 26)" onmouseover="showTip(event, '26', 26)">
-                dataOfValuesForByte(value)
+                dataOfValuesForByte value
               </code>
               <div class="tip" id="26">
-                <strong>
-                  Signature:
-                </strong>
-                value:obj -&gt; byte [] * int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  dataOfValuesForByte value
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        value
+                      </b>
+                      :
+                      obj
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  byte [] * int []
+                  <br/>
+                  Signature: 
+                  value: obj -&gt; byte [] * int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  value
+                </code>
+                :
+                <code class="code-type">
+                  obj
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              byte [] * int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L749-749" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="dataOfValuesForFloat32">
             <div>
               <code onmouseout="hideTip(event, '27', 27)" onmouseover="showTip(event, '27', 27)">
-                dataOfValuesForFloat32(value)
+                dataOfValuesForFloat32 value
               </code>
               <div class="tip" id="27">
-                <strong>
-                  Signature:
-                </strong>
-                value:obj -&gt; float32 [] * int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  dataOfValuesForFloat32 value
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        value
+                      </b>
+                      :
+                      obj
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  float32 [] * int []
+                  <br/>
+                  Signature: 
+                  value: obj -&gt; float32 [] * int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  value
+                </code>
+                :
+                <code class="code-type">
+                  obj
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              float32 [] * int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L743-743" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="dataOfValuesForFloat64">
             <div>
               <code onmouseout="hideTip(event, '28', 28)" onmouseover="showTip(event, '28', 28)">
-                dataOfValuesForFloat64(value)
+                dataOfValuesForFloat64 value
               </code>
               <div class="tip" id="28">
-                <strong>
-                  Signature:
-                </strong>
-                value:obj -&gt; double [] * int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  dataOfValuesForFloat64 value
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        value
+                      </b>
+                      :
+                      obj
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  double [] * int []
+                  <br/>
+                  Signature: 
+                  value: obj -&gt; double [] * int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  value
+                </code>
+                :
+                <code class="code-type">
+                  obj
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              double [] * int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L746-746" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="dataOfValuesForInt16">
             <div>
               <code onmouseout="hideTip(event, '29', 29)" onmouseover="showTip(event, '29', 29)">
-                dataOfValuesForInt16(value)
+                dataOfValuesForInt16 value
               </code>
               <div class="tip" id="29">
-                <strong>
-                  Signature:
-                </strong>
-                value:obj -&gt; int16 [] * int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  dataOfValuesForInt16 value
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        value
+                      </b>
+                      :
+                      obj
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int16 [] * int []
+                  <br/>
+                  Signature: 
+                  value: obj -&gt; int16 [] * int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  value
+                </code>
+                :
+                <code class="code-type">
+                  obj
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int16 [] * int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L755-755" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="dataOfValuesForInt32">
             <div>
               <code onmouseout="hideTip(event, '30', 30)" onmouseover="showTip(event, '30', 30)">
-                dataOfValuesForInt32(value)
+                dataOfValuesForInt32 value
               </code>
               <div class="tip" id="30">
-                <strong>
-                  Signature:
-                </strong>
-                value:obj -&gt; int32 [] * int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  dataOfValuesForInt32 value
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        value
+                      </b>
+                      :
+                      obj
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int32 [] * int []
+                  <br/>
+                  Signature: 
+                  value: obj -&gt; int32 [] * int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  value
+                </code>
+                :
+                <code class="code-type">
+                  obj
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int32 [] * int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L758-758" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="dataOfValuesForInt64">
             <div>
               <code onmouseout="hideTip(event, '31', 31)" onmouseover="showTip(event, '31', 31)">
-                dataOfValuesForInt64(value)
+                dataOfValuesForInt64 value
               </code>
               <div class="tip" id="31">
-                <strong>
-                  Signature:
-                </strong>
-                value:obj -&gt; int64 [] * int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  dataOfValuesForInt64 value
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        value
+                      </b>
+                      :
+                      obj
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int64 [] * int []
+                  <br/>
+                  Signature: 
+                  value: obj -&gt; int64 [] * int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  value
+                </code>
+                :
+                <code class="code-type">
+                  obj
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int64 [] * int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L761-761" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="dataOfValuesForInt8">
             <div>
               <code onmouseout="hideTip(event, '32', 32)" onmouseover="showTip(event, '32', 32)">
-                dataOfValuesForInt8(value)
+                dataOfValuesForInt8 value
               </code>
               <div class="tip" id="32">
-                <strong>
-                  Signature:
-                </strong>
-                value:obj -&gt; int8 [] * int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  dataOfValuesForInt8 value
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        value
+                      </b>
+                      :
+                      obj
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int8 [] * int []
+                  <br/>
+                  Signature: 
+                  value: obj -&gt; int8 [] * int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  value
+                </code>
+                :
+                <code class="code-type">
+                  obj
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int8 [] * int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L752-752" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="dilatedCoordinates">
             <div>
               <code onmouseout="hideTip(event, '33', 33)" onmouseover="showTip(event, '33', 33)">
                 dilatedCoordinates coordinates dilations
               </code>
               <div class="tip" id="33">
-                <strong>
-                  Signature:
-                </strong>
-                coordinates:int [] -&gt; dilations:int [] -&gt; int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  dilatedCoordinates coordinates dilations
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        coordinates
+                      </b>
+                      :
+                      int []
+                    </li>
+                    <li>
+                      <b>
+                        dilations
+                      </b>
+                      :
+                      int []
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int []
+                  <br/>
+                  Signature: 
+                  coordinates: int [] -&gt; dilations: int [] -&gt; int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  coordinates
+                </code>
+                :
+                <code class="code-type">
+                  int []
+                </code>
+              </li>
+              <li>
+                <code>
+                  dilations
+                </code>
+                :
+                <code class="code-type">
+                  int []
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L498-498" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="download">
             <div>
               <code onmouseout="hideTip(event, '34', 34)" onmouseover="showTip(event, '34', 34)">
                 download url localFileName
               </code>
               <div class="tip" id="34">
-                <strong>
-                  Signature:
-                </strong>
-                url:string -&gt; localFileName:string -&gt; unit
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  download url localFileName
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        url
+                      </b>
+                      :
+                      string
+                    </li>
+                    <li>
+                      <b>
+                        localFileName
+                      </b>
+                      :
+                      string
+                    </li>
+                  </ul>
+                  <br/>
+                  Signature: 
+                  url: string -&gt; localFileName: string -&gt; unit
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  url
+                </code>
+                :
+                <code class="code-type">
+                  string
+                </code>
+              </li>
+              <li>
+                <code>
+                  localFileName
+                </code>
+                :
+                <code class="code-type">
+                  string
+                </code>
+              </li>
+            </ul>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L807-807" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="duplicates">
             <div>
               <code onmouseout="hideTip(event, '35', 35)" onmouseover="showTip(event, '35', 35)">
-                duplicates(l)
+                duplicates l
               </code>
               <div class="tip" id="35">
-                <strong>
-                  Signature:
-                </strong>
-                l:seq&lt;&#39;?71749&gt; -&gt; &#39;?71749 list
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                '?71749
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  duplicates l
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        l
+                      </b>
+                      :
+                      seq&lt;&#39;a&gt;
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  &#39;a list
+                  <br/>
+                  Signature: 
+                  l: seq&lt;&#39;a&gt; -&gt; &#39;a list
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  l
+                </code>
+                :
+                <code class="code-type">
+                  seq&lt;&#39;a&gt;
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              &#39;a list
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L75-75" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="flatIndexToIndex">
             <div>
               <code onmouseout="hideTip(event, '36', 36)" onmouseover="showTip(event, '36', 36)">
                 flatIndexToIndex shape flatIndex
               </code>
               <div class="tip" id="36">
-                <strong>
-                  Signature:
-                </strong>
-                shape:Shape -&gt; flatIndex:int -&gt; int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  flatIndexToIndex shape flatIndex
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        shape
+                      </b>
+                      :
+                      Shape
+                    </li>
+                    <li>
+                      <b>
+                        flatIndex
+                      </b>
+                      :
+                      int
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int []
+                  <br/>
+                  Signature: 
+                  shape: Shape -&gt; flatIndex: int -&gt; int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  shape
+                </code>
+                :
+                <code class="code-type">
+                  Shape
+                </code>
+              </li>
+              <li>
+                <code>
+                  flatIndex
+                </code>
+                :
+                <code class="code-type">
+                  int
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L514-514" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="formatType">
             <div>
               <code onmouseout="hideTip(event, '37', 37)" onmouseover="showTip(event, '37', 37)">
-                formatType(ty)
+                formatType ty
               </code>
               <div class="tip" id="37">
-                <strong>
-                  Signature:
-                </strong>
-                ty:Type -&gt; string
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  formatType ty
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        ty
+                      </b>
+                      :
+                      Type
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  string
+                  <br/>
+                  Signature: 
+                  ty: Type -&gt; string
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  ty
+                </code>
+                :
+                <code class="code-type">
+                  Type
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              string
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L596-596" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="getUniqueCounts">
             <div>
               <code onmouseout="hideTip(event, '38', 38)" onmouseover="showTip(event, '38', 38)">
                 getUniqueCounts values sorted
               </code>
               <div class="tip" id="38">
-                <strong>
-                  Signature:
-                </strong>
-                values:&#39;a [] -&gt; sorted:bool -&gt; &#39;a [] * int []
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                'a
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  getUniqueCounts values sorted
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        values
+                      </b>
+                      :
+                      &#39;a []
+                    </li>
+                    <li>
+                      <b>
+                        sorted
+                      </b>
+                      :
+                      bool
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  &#39;a [] * int []
+                  <br/>
+                  Signature: 
+                  values: &#39;a [] -&gt; sorted: bool -&gt; &#39;a [] * int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  values
+                </code>
+                :
+                <code class="code-type">
+                  &#39;a []
+                </code>
+              </li>
+              <li>
+                <code>
+                  sorted
+                </code>
+                :
+                <code class="code-type">
+                  bool
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              &#39;a [] * int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L788-788" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="hasDuplicates">
             <div>
               <code onmouseout="hideTip(event, '39', 39)" onmouseover="showTip(event, '39', 39)">
-                hasDuplicates(l)
+                hasDuplicates l
               </code>
               <div class="tip" id="39">
-                <strong>
-                  Signature:
-                </strong>
-                l:seq&lt;&#39;?71751&gt; -&gt; bool
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                '?71751
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  hasDuplicates l
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        l
+                      </b>
+                      :
+                      seq&lt;&#39;a&gt;
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  bool
+                  <br/>
+                  Signature: 
+                  l: seq&lt;&#39;a&gt; -&gt; bool
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  l
+                </code>
+                :
+                <code class="code-type">
+                  seq&lt;&#39;a&gt;
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              bool
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L82-82" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="indentNewLines">
             <div>
               <code onmouseout="hideTip(event, '40', 40)" onmouseover="showTip(event, '40', 40)">
                 indentNewLines str numSpaces
               </code>
               <div class="tip" id="40">
-                <strong>
-                  Signature:
-                </strong>
-                str:String -&gt; numSpaces:int -&gt; string
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  indentNewLines str numSpaces
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        str
+                      </b>
+                      :
+                      String
+                    </li>
+                    <li>
+                      <b>
+                        numSpaces
+                      </b>
+                      :
+                      int
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  string
+                  <br/>
+                  Signature: 
+                  str: String -&gt; numSpaces: int -&gt; string
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  str
+                </code>
+                :
+                <code class="code-type">
+                  String
+                </code>
+              </li>
+              <li>
+                <code>
+                  numSpaces
+                </code>
+                :
+                <code class="code-type">
+                  int
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              string
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L842-842" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="indexToFlatIndex">
             <div>
               <code onmouseout="hideTip(event, '41', 41)" onmouseover="showTip(event, '41', 41)">
                 indexToFlatIndex shape index
               </code>
               <div class="tip" id="41">
-                <strong>
-                  Signature:
-                </strong>
-                shape:Shape -&gt; index:int [] -&gt; int
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  indexToFlatIndex shape index
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        shape
+                      </b>
+                      :
+                      Shape
+                    </li>
+                    <li>
+                      <b>
+                        index
+                      </b>
+                      :
+                      int []
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int
+                  <br/>
+                  Signature: 
+                  shape: Shape -&gt; index: int [] -&gt; int
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  shape
+                </code>
+                :
+                <code class="code-type">
+                  Shape
+                </code>
+              </li>
+              <li>
+                <code>
+                  index
+                </code>
+                :
+                <code class="code-type">
+                  int []
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L506-506" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="loadBinary">
             <div>
               <code onmouseout="hideTip(event, '42', 42)" onmouseover="showTip(event, '42', 42)">
-                loadBinary(fileName)
+                loadBinary fileName
               </code>
               <div class="tip" id="42">
-                <strong>
-                  Signature:
-                </strong>
-                fileName:string -&gt; &#39;a
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                'a
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  loadBinary fileName
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        fileName
+                      </b>
+                      :
+                      string
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  &#39;a
+                  <br/>
+                  Signature: 
+                  fileName: string -&gt; &#39;a
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  fileName
+                </code>
+                :
+                <code class="code-type">
+                  string
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              &#39;a
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L825-825" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="log10Val">
             <div>
               <code onmouseout="hideTip(event, '43', 43)" onmouseover="showTip(event, '43', 43)">
                 log10Val
               </code>
               <div class="tip" id="43">
-                <strong>
-                  Signature:
-                </strong>
-                float&lt;MeasureOne&gt;
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  log10Val
+                  <br/>
+                  Return Type: 
+                  float&lt;MeasureOne&gt;
+                  <br/>
+                  Signature: 
+                  float&lt;MeasureOne&gt;
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Return Type: 
+            <code class="code-type">
+              float&lt;MeasureOne&gt;
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L15-15" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="logSqrt2Pi">
             <div>
               <code onmouseout="hideTip(event, '44', 44)" onmouseover="showTip(event, '44', 44)">
                 logSqrt2Pi
               </code>
               <div class="tip" id="44">
-                <strong>
-                  Signature:
-                </strong>
-                float&lt;MeasureOne&gt;
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  logSqrt2Pi
+                  <br/>
+                  Return Type: 
+                  float&lt;MeasureOne&gt;
+                  <br/>
+                  Signature: 
+                  float&lt;MeasureOne&gt;
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Return Type: 
+            <code class="code-type">
+              float&lt;MeasureOne&gt;
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L14-14" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="maxIndex">
             <div>
               <code onmouseout="hideTip(event, '45', 45)" onmouseover="showTip(event, '45', 45)">
-                maxIndex(seq)
+                maxIndex seq
               </code>
               <div class="tip" id="45">
-                <strong>
-                  Signature:
-                </strong>
-                seq:seq&lt;&#39;?71812&gt; -&gt; int
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                '?71812
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  maxIndex seq
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        seq
+                      </b>
+                      :
+                      seq&lt;&#39;a&gt;
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int
+                  <br/>
+                  Signature: 
+                  seq: seq&lt;&#39;a&gt; -&gt; int
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  seq
+                </code>
+                :
+                <code class="code-type">
+                  seq&lt;&#39;a&gt;
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L774-774" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="memoize">
             <div>
               <code onmouseout="hideTip(event, '46', 46)" onmouseover="showTip(event, '46', 46)">
-                memoize(fn)
+                memoize fn
               </code>
               <div class="tip" id="46">
-                <strong>
-                  Signature:
-                </strong>
-                fn:(&#39;?71816 -&gt; &#39;?71817) -&gt; &#39;?71816 -&gt; &#39;?71817
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                '?71816, '?71817
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  memoize fn
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        fn
+                      </b>
+                      :
+                      &#39;a -&gt; &#39;b
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  &#39;a -&gt; &#39;b
+                  <br/>
+                  Signature: 
+                  fn: (&#39;a -&gt; &#39;b) -&gt; &#39;a -&gt; &#39;b
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  fn
+                </code>
+                :
+                <code class="code-type">
+                  &#39;a -&gt; &#39;b
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              &#39;a -&gt; &#39;b
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L778-778" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="minIndex">
             <div>
               <code onmouseout="hideTip(event, '47', 47)" onmouseover="showTip(event, '47', 47)">
-                minIndex(seq)
+                minIndex seq
               </code>
               <div class="tip" id="47">
-                <strong>
-                  Signature:
-                </strong>
-                seq:seq&lt;&#39;?71814&gt; -&gt; int
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                '?71814
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  minIndex seq
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        seq
+                      </b>
+                      :
+                      seq&lt;&#39;a&gt;
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int
+                  <br/>
+                  Signature: 
+                  seq: seq&lt;&#39;a&gt; -&gt; int
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  seq
+                </code>
+                :
+                <code class="code-type">
+                  seq&lt;&#39;a&gt;
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L776-776" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="mirrorCoordinates">
             <div>
               <code onmouseout="hideTip(event, '48', 48)" onmouseover="showTip(event, '48', 48)">
-                mirrorCoordinates(...)
+                mirrorCoordinates coordinates shape mirrorDims
               </code>
               <div class="tip" id="48">
-                <strong>
-                  Signature:
-                </strong>
-                coordinates:int [] -&gt; shape:Shape -&gt; mirrorDims:int [] -&gt; int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  mirrorCoordinates coordinates shape mirrorDims
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        coordinates
+                      </b>
+                      :
+                      int []
+                    </li>
+                    <li>
+                      <b>
+                        shape
+                      </b>
+                      :
+                      Shape
+                    </li>
+                    <li>
+                      <b>
+                        mirrorDims
+                      </b>
+                      :
+                      int []
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int []
+                  <br/>
+                  Signature: 
+                  coordinates: int [] -&gt; shape: Shape -&gt; mirrorDims: int [] -&gt; int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  coordinates
+                </code>
+                :
+                <code class="code-type">
+                  int []
+                </code>
+              </li>
+              <li>
+                <code>
+                  shape
+                </code>
+                :
+                <code class="code-type">
+                  Shape
+                </code>
+              </li>
+              <li>
+                <code>
+                  mirrorDims
+                </code>
+                :
+                <code class="code-type">
+                  int []
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L490-490" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="notNull">
             <div>
               <code onmouseout="hideTip(event, '49', 49)" onmouseover="showTip(event, '49', 49)">
-                notNull(value)
+                notNull value
               </code>
               <div class="tip" id="49">
-                <strong>
-                  Signature:
-                </strong>
-                value:&#39;?71747 -&gt; bool
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                '?71747
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  notNull value
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        value
+                      </b>
+                      :
+                      &#39;a
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  bool
+                  <br/>
+                  Signature: 
+                  value: &#39;a -&gt; bool
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  value
+                </code>
+                :
+                <code class="code-type">
+                  &#39;a
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              bool
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L73-73" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="saveBinary">
             <div>
               <code onmouseout="hideTip(event, '50', 50)" onmouseover="showTip(event, '50', 50)">
                 saveBinary object fileName
               </code>
               <div class="tip" id="50">
-                <strong>
-                  Signature:
-                </strong>
-                object:&#39;a -&gt; fileName:string -&gt; unit
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                'a
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  saveBinary object fileName
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        object
+                      </b>
+                      :
+                      &#39;a
+                    </li>
+                    <li>
+                      <b>
+                        fileName
+                      </b>
+                      :
+                      string
+                    </li>
+                  </ul>
+                  <br/>
+                  Signature: 
+                  object: &#39;a -&gt; fileName: string -&gt; unit
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  object
+                </code>
+                :
+                <code class="code-type">
+                  &#39;a
+                </code>
+              </li>
+              <li>
+                <code>
+                  fileName
+                </code>
+                :
+                <code class="code-type">
+                  string
+                </code>
+              </li>
+            </ul>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L813-813" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="shapeLength">
             <div>
               <code onmouseout="hideTip(event, '51', 51)" onmouseover="showTip(event, '51', 51)">
-                shapeLength(shape)
+                shapeLength shape
               </code>
               <div class="tip" id="51">
-                <strong>
-                  Signature:
-                </strong>
-                shape:Shape -&gt; int
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  shapeLength shape
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        shape
+                      </b>
+                      :
+                      Shape
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int
+                  <br/>
+                  Signature: 
+                  shape: Shape -&gt; int
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  shape
+                </code>
+                :
+                <code class="code-type">
+                  Shape
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L91-91" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="shuffledIndices">
             <div>
               <code onmouseout="hideTip(event, '52', 52)" onmouseover="showTip(event, '52', 52)">
-                shuffledIndices(length)
+                shuffledIndices length
               </code>
               <div class="tip" id="52">
-                <strong>
-                  Signature:
-                </strong>
-                length:int -&gt; int -&gt; int
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  shuffledIndices length
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        length
+                      </b>
+                      :
+                      int
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int -&gt; int
+                  <br/>
+                  Signature: 
+                  length: int -&gt; int -&gt; int
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  length
+                </code>
+                :
+                <code class="code-type">
+                  int
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int -&gt; int
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L837-837" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="stringPad">
             <div>
               <code onmouseout="hideTip(event, '53', 53)" onmouseover="showTip(event, '53', 53)">
                 stringPad s width
               </code>
               <div class="tip" id="53">
-                <strong>
-                  Signature:
-                </strong>
-                s:string -&gt; width:int -&gt; string
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  stringPad s width
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        s
+                      </b>
+                      :
+                      string
+                    </li>
+                    <li>
+                      <b>
+                        width
+                      </b>
+                      :
+                      int
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  string
+                  <br/>
+                  Signature: 
+                  s: string -&gt; width: int -&gt; string
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  s
+                </code>
+                :
+                <code class="code-type">
+                  string
+                </code>
+              </li>
+              <li>
+                <code>
+                  width
+                </code>
+                :
+                <code class="code-type">
+                  int
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              string
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L851-851" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="stringPadAs">
             <div>
               <code onmouseout="hideTip(event, '54', 54)" onmouseover="showTip(event, '54', 54)">
                 stringPadAs s1 s2
               </code>
               <div class="tip" id="54">
-                <strong>
-                  Signature:
-                </strong>
-                s1:string -&gt; s2:string -&gt; string
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  stringPadAs s1 s2
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        s1
+                      </b>
+                      :
+                      string
+                    </li>
+                    <li>
+                      <b>
+                        s2
+                      </b>
+                      :
+                      string
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  string
+                  <br/>
+                  Signature: 
+                  s1: string -&gt; s2: string -&gt; string
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  s1
+                </code>
+                :
+                <code class="code-type">
+                  string
+                </code>
+              </li>
+              <li>
+                <code>
+                  s2
+                </code>
+                :
+                <code class="code-type">
+                  string
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              string
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L855-855" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="toInt">
             <div>
               <code onmouseout="hideTip(event, '55', 55)" onmouseover="showTip(event, '55', 55)">
-                toInt(a)
+                toInt a
               </code>
               <div class="tip" id="55">
-                <strong>
-                  Signature:
-                </strong>
-                a:&#39;?71810 -&gt; int
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                '?71810
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  toInt a
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        a
+                      </b>
+                      :
+                      &#39;a
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int
+                  <br/>
+                  Signature: 
+                  a: &#39;a -&gt; int
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  a
+                </code>
+                :
+                <code class="code-type">
+                  &#39;a
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L767-767" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="tryFlatArrayAndShape">
             <div>
               <code onmouseout="hideTip(event, '56', 56)" onmouseover="showTip(event, '56', 56)">
-                tryFlatArrayAndShape(value)
+                tryFlatArrayAndShape value
               </code>
               <div class="tip" id="56">
-                <strong>
-                  Signature:
-                </strong>
-                value:obj -&gt; (&#39;T [] * int []) option
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                'T
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  tryFlatArrayAndShape value
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        value
+                      </b>
+                      :
+                      obj
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  (&#39;T [] * int []) option
+                  <br/>
+                  Signature: 
+                  value: obj -&gt; (&#39;T [] * int []) option
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  value
+                </code>
+                :
+                <code class="code-type">
+                  obj
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              (&#39;T [] * int []) option
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L682-682" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
       </tbody>
@@ -1046,26 +2849,39 @@
                    
         </div>
         <div class="span3">
-          <a href="index.html"><img src="img/diffsharp-logo.png" style="width:140px;height:140px;margin:10px 0px 0px 20px;border-style:none;"/></a>
+          <a href="index.html"><img src="https://diffsharp.github.io/DiffSharp/img/diffsharp-logo.png" style="width:140px;height:140px;margin:10px 0px 0px 20px;border-style:none;"/></a>
 
-          <ul class="nav nav-list" id="menu">
+                <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+                <div id="header">
+                  <div class="searchbox">
+                      <label for="search-by">
+                          <i class="fas fa-search"></i>
+                      </label>
+                      <input data-search-input="" id="search-by" type="search" placeholder="Search..." />
+                      <span data-search-clear="">
+                          <i class="fas fa-times"></i>
+                      </span>
+                  </div>
+              </div>
+              <!-- END SEARCH BOX: this adds support for the search box -->
+
+        <ul class="nav nav-list" id="menu">
             <li class="nav-header">DiffSharp</li>
             <li class="divider"></li>
-            <li><a href="index.html">Home Page</a></li>
+            <li><a href="https://diffsharp.github.io/DiffSharp/index.html">Home Page</a></li>
             <li><a href="https://github.com/DiffSharp/DiffSharp/">GitHub Page</a></li>
-            <li><a href="https://github.com/DiffSharp/DiffSharp/blob/dev/RELEASE_NOTES.md">Release Notes</a></li>
 
             <li class="nav-header">Getting Started</li>
             <li class="divider"></li>
-            <li><a href="api-overview.html">API Overview</a></li>
-            <li><a href="gettingstarted-topic1.html">Getting Started Topic 1</a></li>
-            <li><a href="reference/index.html">API Reference</a></li>
+            <li><a href="https://diffsharp.github.io/DiffSharp/api-overview.html">API Overview</a></li>
+            <li><a href="https://diffsharp.github.io/DiffSharp/gettingstarted-topic1.html">Getting Started Topic 1</a></li>
+            <li><a href="https://diffsharp.github.io/DiffSharp/reference/index.html">API Reference</a></li>
 
             <li class="nav-header">Examples</li>
             <li class="divider"></li>
 
             <li class="nav-header">Machine Learning</li>
-            <li><a href="examples-topic1.html">Topic 1</a></li>
+            <li><a href="https://diffsharp.github.io/DiffSharp/examples-topic1.html">Topic 1</a></li>
 
             <li class="nav-header">Authors</li>
             <li class="divider"></li>
@@ -1076,5 +2892,12 @@
         </div>
       </div>
     </div>
+    <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+    <script type="text/javascript">var baseurl = 'https://diffsharp.github.io/DiffSharp'</script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+    <script type="text/javascript" src="https://diffsharp.github.io/DiffSharp/content/search.js"></script>
+    <!-- END SEARCH BOX: this adds support for the search box -->
   </body>
 </html>

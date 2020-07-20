@@ -19,8 +19,12 @@
     <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
     
-    <link type="text/css" rel="stylesheet" href="https://diffsharp.github.io/DiffSharp/misc/style.css" />
-    <script src="https://diffsharp.github.io/DiffSharp/misc/tips.js" type="text/javascript"></script>
+    <link type="text/css" rel="stylesheet" href="https://diffsharp.github.io/DiffSharp/content/style.css" />
+    <script src="https://diffsharp.github.io/DiffSharp/content/tips.js" type="text/javascript"></script>
+
+    <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+    <!-- END SEARCH BOX: this adds support for the search box -->
   </head>
   <body>
     <div class="container">
@@ -41,7 +45,7 @@
     Namespace: DiffSharp
   </p>
   <p>
-    Assembly: DiffSharp
+    Assembly: DiffSharp.Core.dll
   </p>
   <br/>
   <span>
@@ -50,6 +54,9 @@
       Util
     </a>
   </span>
+  <p>
+    Base Type: obj
+  </p>
   <div class="xmldoc"></div>
   <div></div>
   <div></div>
@@ -58,35 +65,50 @@
     <h3>
       Constructors
     </h3>
-    <table class="table table-bordered member-list">
+    <table class="table member-list">
       <thead>
         <tr>
-          <td>
+          <td class="member-list-header">
             Constructor
           </td>
-          <td>
+          <td class="member-list-header">
             Description
           </td>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="( .ctor )">
             <div>
               <code onmouseout="hideTip(event, '112', 112)" onmouseover="showTip(event, '112', 112)">
                 Random()
               </code>
               <div class="tip" id="112">
-                <strong>
-                  Signature:
-                </strong>
-                unit -&gt; Random
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random()
+                  <br/>
+                  Return Type: 
+                  Random
+                  <br/>
+                  Signature: 
+                  unit -&gt; Random
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Return Type: 
+            <code class="code-type">
+              Random
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L32-32" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
       </tbody>
@@ -97,294 +119,822 @@
     <h3>
       Static members
     </h3>
-    <table class="table table-bordered member-list">
+    <table class="table member-list">
       <thead>
         <tr>
-          <td>
+          <td class="member-list-header">
             Static member
           </td>
-          <td>
+          <td class="member-list-header">
             Description
           </td>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="Bernoulli">
             <div>
               <code onmouseout="hideTip(event, '113', 113)" onmouseover="showTip(event, '113', 113)">
                 Random.Bernoulli()
               </code>
               <div class="tip" id="113">
-                <strong>
-                  Signature:
-                </strong>
-                unit -&gt; float&lt;MeasureOne&gt;
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.Bernoulli()
+                  <br/>
+                  Return Type: 
+                  float&lt;MeasureOne&gt;
+                  <br/>
+                  Signature: 
+                  unit -&gt; float&lt;MeasureOne&gt;
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Return Type: 
+            <code class="code-type">
+              float&lt;MeasureOne&gt;
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L59-59" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="Bernoulli">
             <div>
               <code onmouseout="hideTip(event, '114', 114)" onmouseover="showTip(event, '114', 114)">
                 Random.Bernoulli(prob)
               </code>
               <div class="tip" id="114">
-                <strong>
-                  Signature:
-                </strong>
-                prob:float -&gt; float&lt;MeasureOne&gt;
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.Bernoulli(prob)
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        prob
+                      </b>
+                      :
+                      float
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  float&lt;MeasureOne&gt;
+                  <br/>
+                  Signature: 
+                  (prob: float) -&gt; float&lt;MeasureOne&gt;
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  prob
+                </code>
+                :
+                <code class="code-type">
+                  float
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              float&lt;MeasureOne&gt;
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L58-58" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="Choice">
             <div>
               <code onmouseout="hideTip(event, '115', 115)" onmouseover="showTip(event, '115', 115)">
                 Random.Choice(array, probs)
               </code>
               <div class="tip" id="115">
-                <strong>
-                  Signature:
-                </strong>
-                (array:&#39;?71738 [] * probs:float []) -&gt; &#39;?71738
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                '?71738
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.Choice(array, probs)
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        array
+                      </b>
+                      :
+                      &#39;a []
+                    </li>
+                    <li>
+                      <b>
+                        probs
+                      </b>
+                      :
+                      float []
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  &#39;a
+                  <br/>
+                  Signature: 
+                  (array: &#39;a [] * probs: float []) -&gt; &#39;a
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  array
+                </code>
+                :
+                <code class="code-type">
+                  &#39;a []
+                </code>
+              </li>
+              <li>
+                <code>
+                  probs
+                </code>
+                :
+                <code class="code-type">
+                  float []
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              &#39;a
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L51-51" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="Choice">
             <div>
               <code onmouseout="hideTip(event, '116', 116)" onmouseover="showTip(event, '116', 116)">
                 Random.Choice(array)
               </code>
               <div class="tip" id="116">
-                <strong>
-                  Signature:
-                </strong>
-                (array:&#39;?71736 []) -&gt; &#39;?71736
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                '?71736
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.Choice(array)
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        array
+                      </b>
+                      :
+                      &#39;a []
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  &#39;a
+                  <br/>
+                  Signature: 
+                  (array: &#39;a []) -&gt; &#39;a
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  array
+                </code>
+                :
+                <code class="code-type">
+                  &#39;a []
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              &#39;a
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L50-50" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="ChoiceIndex">
             <div>
               <code onmouseout="hideTip(event, '117', 117)" onmouseover="showTip(event, '117', 117)">
                 Random.ChoiceIndex(probs)
               </code>
               <div class="tip" id="117">
-                <strong>
-                  Signature:
-                </strong>
-                (probs:float []) -&gt; int
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.ChoiceIndex(probs)
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        probs
+                      </b>
+                      :
+                      float []
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int
+                  <br/>
+                  Signature: 
+                  (probs: float []) -&gt; int
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  probs
+                </code>
+                :
+                <code class="code-type">
+                  float []
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L45-45" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="Integer">
             <div>
               <code onmouseout="hideTip(event, '118', 118)" onmouseover="showTip(event, '118', 118)">
                 Random.Integer(low, high)
               </code>
               <div class="tip" id="118">
-                <strong>
-                  Signature:
-                </strong>
-                (low:int * high:int) -&gt; int
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.Integer(low, high)
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        low
+                      </b>
+                      :
+                      int
+                    </li>
+                    <li>
+                      <b>
+                        high
+                      </b>
+                      :
+                      int
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int
+                  <br/>
+                  Signature: 
+                  (low: int * high: int) -&gt; int
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  low
+                </code>
+                :
+                <code class="code-type">
+                  int
+                </code>
+              </li>
+              <li>
+                <code>
+                  high
+                </code>
+                :
+                <code class="code-type">
+                  int
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L44-44" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="Multinomial">
             <div>
               <code onmouseout="hideTip(event, '119', 119)" onmouseover="showTip(event, '119', 119)">
                 Random.Multinomial(probs, numSamples)
               </code>
               <div class="tip" id="119">
-                <strong>
-                  Signature:
-                </strong>
-                (probs:float [,] * numSamples:int) -&gt; int [,]
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.Multinomial(probs, numSamples)
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        probs
+                      </b>
+                      :
+                      float [,]
+                    </li>
+                    <li>
+                      <b>
+                        numSamples
+                      </b>
+                      :
+                      int
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int [,]
+                  <br/>
+                  Signature: 
+                  (probs: float [,] * numSamples: int) -&gt; int [,]
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  probs
+                </code>
+                :
+                <code class="code-type">
+                  float [,]
+                </code>
+              </li>
+              <li>
+                <code>
+                  numSamples
+                </code>
+                :
+                <code class="code-type">
+                  int
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int [,]
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L56-56" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="Multinomial">
             <div>
               <code onmouseout="hideTip(event, '120', 120)" onmouseover="showTip(event, '120', 120)">
                 Random.Multinomial(probs, numSamples)
               </code>
               <div class="tip" id="120">
-                <strong>
-                  Signature:
-                </strong>
-                (probs:float [] * numSamples:int) -&gt; int []
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.Multinomial(probs, numSamples)
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        probs
+                      </b>
+                      :
+                      float []
+                    </li>
+                    <li>
+                      <b>
+                        numSamples
+                      </b>
+                      :
+                      int
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  int []
+                  <br/>
+                  Signature: 
+                  (probs: float [] * numSamples: int) -&gt; int []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  probs
+                </code>
+                :
+                <code class="code-type">
+                  float []
+                </code>
+              </li>
+              <li>
+                <code>
+                  numSamples
+                </code>
+                :
+                <code class="code-type">
+                  int
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              int []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L54-54" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="Normal">
             <div>
               <code onmouseout="hideTip(event, '121', 121)" onmouseover="showTip(event, '121', 121)">
                 Random.Normal(mean, stddev)
               </code>
               <div class="tip" id="121">
-                <strong>
-                  Signature:
-                </strong>
-                (mean:float * stddev:float) -&gt; float
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.Normal(mean, stddev)
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        mean
+                      </b>
+                      :
+                      float
+                    </li>
+                    <li>
+                      <b>
+                        stddev
+                      </b>
+                      :
+                      float
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  float
+                  <br/>
+                  Signature: 
+                  (mean: float * stddev: float) -&gt; float
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  mean
+                </code>
+                :
+                <code class="code-type">
+                  float
+                </code>
+              </li>
+              <li>
+                <code>
+                  stddev
+                </code>
+                :
+                <code class="code-type">
+                  float
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              float
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L43-43" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="Normal">
             <div>
               <code onmouseout="hideTip(event, '122', 122)" onmouseover="showTip(event, '122', 122)">
                 Random.Normal()
               </code>
               <div class="tip" id="122">
-                <strong>
-                  Signature:
-                </strong>
-                unit -&gt; float
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.Normal()
+                  <br/>
+                  Return Type: 
+                  float
+                  <br/>
+                  Signature: 
+                  unit -&gt; float
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Return Type: 
+            <code class="code-type">
+              float
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L37-37" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="Seed">
             <div>
               <code onmouseout="hideTip(event, '123', 123)" onmouseover="showTip(event, '123', 123)">
                 Random.Seed(seed)
               </code>
               <div class="tip" id="123">
-                <strong>
-                  Signature:
-                </strong>
-                seed:int -&gt; unit
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.Seed(seed)
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        seed
+                      </b>
+                      :
+                      int
+                    </li>
+                  </ul>
+                  <br/>
+                  Signature: 
+                  (seed: int) -&gt; unit
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  seed
+                </code>
+                :
+                <code class="code-type">
+                  int
+                </code>
+              </li>
+            </ul>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L34-34" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="Shuffle">
             <div>
               <code onmouseout="hideTip(event, '124', 124)" onmouseover="showTip(event, '124', 124)">
                 Random.Shuffle(array)
               </code>
               <div class="tip" id="124">
-                <strong>
-                  Signature:
-                </strong>
-                (array:&#39;?71744 []) -&gt; &#39;?71744 []
-                <br/>
-                <strong>
-                  Type parameters: 
-                </strong>
-                '?71744
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.Shuffle(array)
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        array
+                      </b>
+                      :
+                      &#39;a []
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  &#39;a []
+                  <br/>
+                  Signature: 
+                  (array: &#39;a []) -&gt; &#39;a []
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  array
+                </code>
+                :
+                <code class="code-type">
+                  &#39;a []
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              &#39;a []
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L60-60" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="Uniform">
             <div>
               <code onmouseout="hideTip(event, '125', 125)" onmouseover="showTip(event, '125', 125)">
                 Random.Uniform(low, high)
               </code>
               <div class="tip" id="125">
-                <strong>
-                  Signature:
-                </strong>
-                (low:float * high:float) -&gt; float
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.Uniform(low, high)
+                  Parameter Types: 
+                  <ul>
+                    <li>
+                      <b>
+                        low
+                      </b>
+                      :
+                      float
+                    </li>
+                    <li>
+                      <b>
+                        high
+                      </b>
+                      :
+                      float
+                    </li>
+                  </ul>
+                  <br/>
+                  Return Type: 
+                  float
+                  <br/>
+                  Signature: 
+                  (low: float * high: float) -&gt; float
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Parameter Types: 
+            <ul>
+              <li>
+                <code>
+                  low
+                </code>
+                :
+                <code class="code-type">
+                  float
+                </code>
+              </li>
+              <li>
+                <code>
+                  high
+                </code>
+                :
+                <code class="code-type">
+                  float
+                </code>
+              </li>
+            </ul>
+            Return Type: 
+            <code class="code-type">
+              float
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L36-36" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
         <tr>
-          <td class="member-name">
+          <td class="member-name" id="Uniform">
             <div>
               <code onmouseout="hideTip(event, '126', 126)" onmouseover="showTip(event, '126', 126)">
                 Random.Uniform()
               </code>
               <div class="tip" id="126">
-                <strong>
-                  Signature:
-                </strong>
-                unit -&gt; float
-                <br/>
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <br/>
+                  Random.Uniform()
+                  <br/>
+                  Return Type: 
+                  float
+                  <br/>
+                  Signature: 
+                  unit -&gt; float
+                  <br/>
+                </div>
               </div>
             </div>
           </td>
           <td class="xmldoc">
-            
+            Return Type: 
+            <code class="code-type">
+              float
+            </code>
+            <br/>
+            <a href="https://github.com/DiffSharp/DiffSharp//tree/dev/src/DiffSharp.Core/Util.fs#L35-35" class="github-link">
+              <img src="../content/img/github.png" class="normal"/>
+              <img src="../content/img/github-blue.png" class="hover"/>
+            </a>
           </td>
         </tr>
       </tbody>
@@ -394,26 +944,39 @@
                    
         </div>
         <div class="span3">
-          <a href="index.html"><img src="img/diffsharp-logo.png" style="width:140px;height:140px;margin:10px 0px 0px 20px;border-style:none;"/></a>
+          <a href="index.html"><img src="https://diffsharp.github.io/DiffSharp/img/diffsharp-logo.png" style="width:140px;height:140px;margin:10px 0px 0px 20px;border-style:none;"/></a>
 
-          <ul class="nav nav-list" id="menu">
+                <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+                <div id="header">
+                  <div class="searchbox">
+                      <label for="search-by">
+                          <i class="fas fa-search"></i>
+                      </label>
+                      <input data-search-input="" id="search-by" type="search" placeholder="Search..." />
+                      <span data-search-clear="">
+                          <i class="fas fa-times"></i>
+                      </span>
+                  </div>
+              </div>
+              <!-- END SEARCH BOX: this adds support for the search box -->
+
+        <ul class="nav nav-list" id="menu">
             <li class="nav-header">DiffSharp</li>
             <li class="divider"></li>
-            <li><a href="index.html">Home Page</a></li>
+            <li><a href="https://diffsharp.github.io/DiffSharp/index.html">Home Page</a></li>
             <li><a href="https://github.com/DiffSharp/DiffSharp/">GitHub Page</a></li>
-            <li><a href="https://github.com/DiffSharp/DiffSharp/blob/dev/RELEASE_NOTES.md">Release Notes</a></li>
 
             <li class="nav-header">Getting Started</li>
             <li class="divider"></li>
-            <li><a href="api-overview.html">API Overview</a></li>
-            <li><a href="gettingstarted-topic1.html">Getting Started Topic 1</a></li>
-            <li><a href="reference/index.html">API Reference</a></li>
+            <li><a href="https://diffsharp.github.io/DiffSharp/api-overview.html">API Overview</a></li>
+            <li><a href="https://diffsharp.github.io/DiffSharp/gettingstarted-topic1.html">Getting Started Topic 1</a></li>
+            <li><a href="https://diffsharp.github.io/DiffSharp/reference/index.html">API Reference</a></li>
 
             <li class="nav-header">Examples</li>
             <li class="divider"></li>
 
             <li class="nav-header">Machine Learning</li>
-            <li><a href="examples-topic1.html">Topic 1</a></li>
+            <li><a href="https://diffsharp.github.io/DiffSharp/examples-topic1.html">Topic 1</a></li>
 
             <li class="nav-header">Authors</li>
             <li class="divider"></li>
@@ -424,5 +987,12 @@
         </div>
       </div>
     </div>
+    <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+    <script type="text/javascript">var baseurl = 'https://diffsharp.github.io/DiffSharp'</script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+    <script type="text/javascript" src="https://diffsharp.github.io/DiffSharp/content/search.js"></script>
+    <!-- END SEARCH BOX: this adds support for the search box -->
   </body>
 </html>
