@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="ShapeConstraints.fs" />
+    <Compile Include="ShapeInference.fs" />
+    <ProjectReference Include="..\..\src\DiffSharp.Core\DiffSharp.Core.fsproj" />
+  	<PackageReference Update="FSharp.Core" Version="$(FSharpCoreVersion)" />
+  </ItemGroup>
+</Project>
