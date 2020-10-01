@@ -55,18 +55,18 @@ type MNIST(path:string, ?urls:seq<string>, ?train:bool, ?transform:Tensor->Tenso
     let filesProcessed = [for file in files do Path.ChangeExtension(file, ".tensor")]
     let data, target = 
         Directory.CreateDirectory(path) |> ignore
-        let mutable data = dsharp.zero()
-        let mutable target = dsharp.zero()
+        let mutable data = dsharp.zero(device=Device.CPU)
+        let mutable target = dsharp.zero(device=Device.CPU)
         if train then
             if not (File.Exists(files.[0])) then download urls.[0] files.[0]
             if not (File.Exists(files.[1])) then download urls.[1] files.[1]
-            if File.Exists(filesProcessed.[0]) then data <-    dsharp.load(filesProcessed.[0]) else data <-    MNIST.LoadMNISTImages(files.[0]); dsharp.save(data, filesProcessed.[0])
-            if File.Exists(filesProcessed.[1]) then target <- dsharp.load(filesProcessed.[1]) else target <- MNIST.LoadMNISTLabels(files.[1]); dsharp.save(target, filesProcessed.[1])
+            if File.Exists(filesProcessed.[0]) then data <-    dsharp.load(filesProcessed.[0], device=Device.CPU) else data <-    MNIST.LoadMNISTImages(files.[0]); dsharp.save(data, filesProcessed.[0])
+            if File.Exists(filesProcessed.[1]) then target <- dsharp.load(filesProcessed.[1], device=Device.CPU) else target <- MNIST.LoadMNISTLabels(files.[1]); dsharp.save(target, filesProcessed.[1])
         else
             if not (File.Exists(files.[2])) then download urls.[2] files.[2]
             if not (File.Exists(files.[3])) then download urls.[3] files.[3]
-            if File.Exists(filesProcessed.[2]) then data <-    dsharp.load(filesProcessed.[2]) else data <-    MNIST.LoadMNISTImages(files.[2]); dsharp.save(data, filesProcessed.[2])
-            if File.Exists(filesProcessed.[3]) then target <- dsharp.load(filesProcessed.[3]) else target <- MNIST.LoadMNISTLabels(files.[3]); dsharp.save(target, filesProcessed.[3])
+            if File.Exists(filesProcessed.[2]) then data <-    dsharp.load(filesProcessed.[2], device=Device.CPU) else data <-    MNIST.LoadMNISTImages(files.[2]); dsharp.save(data, filesProcessed.[2])
+            if File.Exists(filesProcessed.[3]) then target <- dsharp.load(filesProcessed.[3], device=Device.CPU) else target <- MNIST.LoadMNISTLabels(files.[3]); dsharp.save(target, filesProcessed.[3])
         data, target
 
     static member internal LoadMNISTImages(filename, ?n:int) =
@@ -80,7 +80,7 @@ type MNIST(path:string, ?urls:seq<string>, ?train:bool, ?transform:Tensor->Tenso
             let n = defaultArg n maxitems
             r.ReadBytes(n * rows * cols)
             |> Array.map float32
-            |> dsharp.tensor
+            |> (fun d -> dsharp.tensor(d, device=Device.CPU))
             |> dsharp.view ([n; 1; 28; 28])
             |> fun t -> t / 255
         | _ -> failwith "Given file is not in the MNIST format."
@@ -93,7 +93,7 @@ type MNIST(path:string, ?urls:seq<string>, ?train:bool, ?transform:Tensor->Tenso
             let n = defaultArg n maxitems
             r.ReadBytes(n)
             |> Array.map int
-            |> dsharp.tensor
+            |> (fun d -> dsharp.tensor(d, device=Device.CPU))
             |> dsharp.view ([n])
         | _ -> failwith "Given file is not in the MNIST format."
     override d.length = data.shape.[0]
