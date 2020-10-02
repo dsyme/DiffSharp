@@ -1,5 +1,7 @@
 ﻿namespace DiffSharp
 
+open DiffSharp.Symbols
+
 /// <summary>
 ///   Represents the type of a device. 
 /// </summary>
@@ -23,6 +25,8 @@ type DeviceType =
     | MSNPU = 8 // MSNPU
     | XLA = 9 // XLA / TPU
 
+module DeviceType =
+    let Symbolic (s: symbol) : DeviceType = LanguagePrimitives.EnumOfValue s.Code
 
 /// Represents a device specification.
 [<Struct>]
@@ -54,6 +58,12 @@ module Device =
 
     /// Get or set the default device used when creating tensors. Note, use <c>dsharp.config(...)</c> instead.
     let mutable Default : Device = Device.CPU
+
+    let Symbolic (s: symbol) : Device =
+        let dtsym = s.SymAllocator.CreateSymbol(s.Name + ".DeviceType")
+        let device = Device(DeviceType.Symbolic(dtsym), 0)
+        s.Solve(device)
+        device
 
 /// Represents a backend for DiffSharp tensors
 [<RequireQualifiedAccess>]
@@ -109,6 +119,7 @@ type Dtype =
     | Int64
     /// Store elements as booleans
     | Bool
+    //| Sym of symbol
 
     member internal x.Code =
         match x with
@@ -121,6 +132,7 @@ type Dtype =
         | Int32 -> 0x70000
         | Int64 -> 0x80000
         | Bool -> 0x90000
+        //| Sym _ -> failwith "Code"
 
     member internal x.Name =
         match x with

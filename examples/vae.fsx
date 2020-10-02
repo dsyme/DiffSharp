@@ -33,7 +33,9 @@ open DiffSharp
 open DiffSharp.Model
 open DiffSharp.Optim
 open DiffSharp.Data
+open DiffSharp.Symbols
 
+dsharp.config(device=sym?Default)
 
 type VAE(xDim:int, zDim:int, ?hDims:seq<int>, ?activation:Tensor->Tensor, ?activationLast:Tensor->Tensor) =
     inherit Model()
