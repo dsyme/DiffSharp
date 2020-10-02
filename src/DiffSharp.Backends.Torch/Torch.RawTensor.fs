@@ -38,7 +38,7 @@ module internal Utils =
         | ScalarType.Double -> Dtype.Float64
         |  _ -> failwith "fromTorchType - other type"
 
-    let toTorchShape (shape: int[]) : TorchShape = int64s shape
+    let toTorchShape (shape: Shape) : TorchShape = int64s shape
 
     let fromTorchShape (shape: int64[]) = shape |> Array.map int
 
@@ -55,7 +55,7 @@ module internal Utils =
 
 /// This is the base class for all RawTensorXyz tuypes.
 /// All type-independent operations are implemented directly on this class. 
-type TorchRawTensor(tt: TorchTensor, shape: int[], dtype: Dtype, device: Device) =
+type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device) =
 
     inherit RawTensor()
 
@@ -337,7 +337,7 @@ type TorchRawTensor(tt: TorchTensor, shape: int[], dtype: Dtype, device: Device)
         let res = t.TorchTensor.Gather(int64 dim, indices.TorchTensor)
         t.MakeLike(res, indices.Shape)
 
-    override t.ViewT(shape:int[]) =
+    override t.ViewT(shape:Shape) =
         Shape.checkCanView t.Shape shape
         t.MakeLike(tt.Reshape(toTorchShape shape), shape=shape)  // Use Reshape instead of View to ensure underlying non-contiguous libtorch tensors can be viewed. Internally Reshape uses View if possible, otherwise it copies data to a contiguous tensor and then views.
 
@@ -837,19 +837,19 @@ type TorchTensorOps<'T, 'T2>
 
     member _.Zero(device) = TorchRawTensor(torchMoveTo (fromScalar (conv zero)) device, Shape.scalar, dtype, device) :> RawTensor 
     member _.One(device) = TorchRawTensor(torchMoveTo (fromScalar (conv one)) device, Shape.scalar, dtype, device) :> RawTensor
-    member _.Empty(shape:int[], device) = TorchRawTensor(empty(toTorchShape shape, device), shape, dtype, device) :> RawTensor
-    member _.Zeros(shape:int[], device) = TorchRawTensor(zeros(toTorchShape shape, device), shape, dtype, device) :> RawTensor
-    member _.Ones(shape:int[], device) = TorchRawTensor(ones(toTorchShape shape, device), shape, dtype, device) :> RawTensor
-    member _.Random(shape:int[], device) = TorchRawTensor(random(toTorchShape shape, device), shape, dtype, device) :> RawTensor
-    member _.RandomNormal(shape:int[], device) = TorchRawTensor(randomN(toTorchShape shape, device), shape, dtype, device) :> RawTensor
+    member _.Empty(shape:Shape, device) = TorchRawTensor(empty(toTorchShape shape, device), shape, dtype, device) :> RawTensor
+    member _.Zeros(shape:Shape, device) = TorchRawTensor(zeros(toTorchShape shape, device), shape, dtype, device) :> RawTensor
+    member _.Ones(shape:Shape, device) = TorchRawTensor(ones(toTorchShape shape, device), shape, dtype, device) :> RawTensor
+    member _.Random(shape:Shape, device) = TorchRawTensor(random(toTorchShape shape, device), shape, dtype, device) :> RawTensor
+    member _.RandomNormal(shape:Shape, device) = TorchRawTensor(randomN(toTorchShape shape, device), shape, dtype, device) :> RawTensor
     member _.RandomInt(shape, low, high, device) = TorchRawTensor(randomIntegers(toTorchShape shape, low, high, device), shape, dtype, device) :> RawTensor
 
-    member _.Full(shape:int[], value:obj, device) =
+    member _.Full(shape:Shape, value:obj, device) =
         let t = zeros(toTorchShape shape, device)
         t.FillInPlace(scalarFromConvValue (conv (valueFromObj value))) |> ignore
         TorchRawTensor(t, shape, dtype, device) :> RawTensor
 
-    member _.CreateFromFlatArray(values:Array, shape:int[], device:Device) : RawTensor =
+    member _.CreateFromFlatArray(values:Array, shape:Shape, device:Device) : RawTensor =
         let values = values :?> 'T[] |> Array.map conv 
         let t = 
             match shape with 
@@ -1058,7 +1058,7 @@ type TorchBackendStatics() =
         | Bool -> torchBool.One(device)
         | Sym _ -> failwith "symbolic requires Backend.Symbolic"
 
-    override _.Zeros(shape:int[], dtype, device) =
+    override _.Zeros(shape:Shape, dtype, device) =
         match dtype with 
         | Float32 -> torchFloat32.Zeros(shape, device)
         | Float64 -> torchFloat64.Zeros(shape, device)
@@ -1070,7 +1070,7 @@ type TorchBackendStatics() =
         | Bool -> torchBool.Zeros(shape, device)
         | Sym _ -> failwith "symbolic requires Backend.Symbolic"
 
-    override _.Empty(shape:int[], dtype, device) =
+    override _.Empty(shape:Shape, dtype, device) =
         match dtype with 
         | Float32 -> torchFloat32.Empty(shape, device)
         | Float64 -> torchFloat64.Empty(shape, device)
@@ -1082,7 +1082,7 @@ type TorchBackendStatics() =
         | Bool -> torchBool.Empty(shape, device)
         | Sym _ -> failwith "symbolic requires Backend.Symbolic"
 
-    override _.Ones(shape:int[], dtype, device) =
+    override _.Ones(shape:Shape, dtype, device) =
         match dtype with 
         | Float32 -> torchFloat32.Ones(shape, device)
         | Float64 -> torchFloat64.Ones(shape, device)
@@ -1094,7 +1094,7 @@ type TorchBackendStatics() =
         | Bool -> torchBool.Ones(shape, device)
         | Sym _ -> failwith "symbolic requires Backend.Symbolic"
 
-    override _.Full(shape:int[], value:obj, dtype, device) = 
+    override _.Full(shape:Shape, value:obj, dtype, device) = 
         match dtype with 
         | Float32 -> torchFloat32.Full(shape, value, device)
         | Float64 -> torchFloat64.Full(shape, value, device)
@@ -1106,7 +1106,7 @@ type TorchBackendStatics() =
         | Bool -> torchBool.Full(shape, value, device)
         | Sym _ -> failwith "symbolic requires Backend.Symbolic"
 
-    override _.Random(shape:int[], dtype, device) =
+    override _.Random(shape:Shape, dtype, device) =
         match dtype with 
         | Float32 -> torchFloat32.Random(shape, device)
         | Float64 -> torchFloat64.Random(shape, device)
@@ -1118,7 +1118,7 @@ type TorchBackendStatics() =
         | Bool -> torchBool.Random(shape, device)
         | Sym _ -> failwith "symbolic requires Backend.Symbolic"
 
-    override _.RandomNormal(shape:int[], dtype, device) =
+    override _.RandomNormal(shape:Shape, dtype, device) =
         match dtype with 
         | Float32 -> torchFloat32.RandomNormal(shape, device)
         | Float64 -> torchFloat64.RandomNormal(shape, device)
@@ -1130,7 +1130,7 @@ type TorchBackendStatics() =
         | Bool -> torchBool.RandomNormal(shape, device)
         | Sym _ -> failwith "symbolic requires Backend.Symbolic"
 
-    override _.RandomInt(shape:int[], low:int, high:int, dtype, device) = 
+    override _.RandomInt(shape:Shape, low:int, high:int, dtype, device) = 
         match dtype with 
         | Float32 -> torchFloat32.RandomInt(shape, low, high, device)
         | Float64 -> torchFloat64.RandomInt(shape, low, high, device)
