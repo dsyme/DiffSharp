@@ -4,6 +4,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Symbols.fs" />
     <Compile Include="Extensions.fs" />
     <Compile Include="Dtype.fs" />
     <Compile Include="Shape.fs" />

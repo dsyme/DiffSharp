@@ -26,7 +26,7 @@ type DeviceType =
     | XLA = 9 // XLA / TPU
 
 module DeviceType =
-    let Symbolic (s: symbol) : DeviceType = LanguagePrimitives.EnumOfValue s.Code
+    let Symbolic (s: symbol) : DeviceType = LanguagePrimitives.EnumOfValue s.Id
 
 /// Represents a device specification.
 [<Struct>]
@@ -36,8 +36,6 @@ type Device =
     member x.DeviceIndex = (let (Device(_,b)) = x in b)
     static member CPU = Device(DeviceType.CPU, -1)
     static member GPU = Device(DeviceType.CUDA, 0)
-
-    member internal x.Code = (int x.DeviceType <<< 4) + x.DeviceIndex
 
     member internal x.Name =
        (match x.DeviceType with
@@ -60,8 +58,8 @@ module Device =
     let mutable Default : Device = Device.CPU
 
     let Symbolic (s: symbol) : Device =
-        let dtsym = s.SymAllocator.CreateSymbol(s.Name + ".DeviceType")
-        let device = Device(DeviceType.Symbolic(dtsym), 0)
+        let dt = s.SymAllocator.CreateSymbol(s.Name + ".DeviceType")
+        let device = Device(dt, 0)
         s.Solve(device)
         device
 
@@ -72,6 +70,8 @@ type Backend =
     | Reference
     /// The LibTorch backend 
     | Torch
+    /// For symbolic analysis of tensors
+    | Symbolic
     /// Reserved for future use
     | Other of name: string * code: int
 
@@ -79,6 +79,7 @@ type Backend =
         match x with 
         | Reference -> 0x000
         | Torch -> 0x0100
+        | Symbolic -> 0x0200
         | Other (_name, code) -> (code + 3) <<< 8
 
     /// Get the name of the backend
@@ -86,6 +87,7 @@ type Backend =
         match x with 
         | Reference -> "Reference"
         | Torch -> "Torch"
+        | Symbolic -> "Symbolic"
         | Other (name, _) -> name
 
 /// Contains functions and settings related to backend specifications.
@@ -119,20 +121,7 @@ type Dtype =
     | Int64
     /// Store elements as booleans
     | Bool
-    //| Sym of symbol
-
-    member internal x.Code =
-        match x with
-        //| Float16 -> 0x10000
-        | Float32 -> 0x20000
-        | Float64 -> 0x30000
-        | Int8 -> 0x40000
-        | Byte -> 0x50000
-        | Int16 -> 0x60000
-        | Int32 -> 0x70000
-        | Int64 -> 0x80000
-        | Bool -> 0x90000
-        //| Sym _ -> failwith "Code"
+    | Sym of symbol
 
     member internal x.Name =
         match x with
@@ -145,24 +134,13 @@ type Dtype =
         | Int32 -> "Int32"
         | Int64 -> "Int64"
         | Bool -> "Bool"
-
-    /// Get the .NET type that corresponds to this type when data is transferred to .NET
-    member x.AsType () =
-        match x with
-        //| Float16 -> typeof<single>
-        | Float32 -> typeof<single>
-        | Float64 -> typeof<double>
-        | Int8 -> typeof<int8>
-        | Byte -> typeof<byte>
-        | Int16 -> typeof<int16>
-        | Int32 -> typeof<int32>
-        | Int64 -> typeof<int64>
-        | Bool -> typeof<bool>
+        | Sym sym -> sym.Name
 
     /// Gets the natural result of the Sum(), SumToSize() and Sum(dim) operation on this dtype
     member t.SummationType =
         match t with
         | Bool | Byte | Int8 | Int16 | Int32 | Int64 -> Dtype.Int64
+        | Sym symb -> sym.CreateSymbol(symb.Name + ".SummationType")
         | dt -> dt
 
 /// Contains functions and settings related to tensor element types
@@ -171,12 +149,14 @@ module Dtype =
     let (|FloatingPoint|_|) x =
         match x with
         | Float32 | Float64 -> Some()
+        | Sym _ -> failwith "FloatingPoint - symbolic dtype"
         | _ -> None
 
     /// Matches all integral tensor element types
     let (|Integral|_|) x =
         match x with
         | Byte | Int8 | Int16 | Int32 | Int64 -> Some()
+        | Sym _ -> failwith "Integral - symbolic dtype"
         | _ -> None
 
     /// Matches all integral or boolean tensor element types
@@ -190,6 +170,7 @@ module Dtype =
         if dtype1 = dtype2 then Some dtype1
         else
             match dtype1, dtype2 with 
+            | Sym _, _ | _, Sym _ -> sym.CreateSymbol("widen("+dtype1.Name + ","+dtype2.Name+")")
             | Float64, _ | _, Float64 -> Some Float64
             | Float32, _ | _, Float32 -> Some Float32
             | Int64, _ | _, Int64 -> Some Int64
@@ -216,6 +197,8 @@ module Dtype =
 
     /// Get or set the default element type used when creating tensors. Note, use <c>dsharp.config(...)</c> instead.
     let mutable Default = Dtype.Float32
+
+    let Symbolic (s: symbol) : Dtype = Dtype.Sym s
 
 /// Contains global functions and settings related to tensor element types, used when writing backends.
 [<AutoOpen>]

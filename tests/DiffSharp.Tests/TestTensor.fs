@@ -95,8 +95,10 @@ type TestTensor () =
 
     [<Test>]
     member _.TestTensorHandle () =
-        let t1 = dsharp.tensor([1.0f ; 1.0f ])
-        Assert.AreEqual([| 1.0f ; 1.0f |], (t1.primalRaw.Handle :?> float32[]))
+        for combo in Combos.Float32 do
+           if combo.backend = Backend.Reference then
+               let t1 = combo.tensor([1.0f ; 1.0f ])
+               Assert.AreEqual([| 1.0f ; 1.0f |], (t1.primalRaw.Handle :?> float32[]))
 
     [<Test>]
     member _.TestTensorCreate0 () =
@@ -763,6 +765,7 @@ type TestTensor () =
                 | Int64 -> ""
                 | Float32 -> ".000000"
                 | Float64 -> ".000000"
+                | Sym _ -> failwith "unexpected symbolic"
             let t0StringCorrect = sprintf "Tensor 2%s" suffix
             let t1StringCorrect = sprintf "Tensor [[2%s], \n [2%s]]" suffix suffix
             let t2StringCorrect = sprintf "Tensor [[[2%s, 2%s]]]" suffix suffix

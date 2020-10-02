@@ -35,7 +35,15 @@ open DiffSharp.Optim
 open DiffSharp.Data
 open DiffSharp.Symbols
 
-dsharp.config(device=sym?Default)
+
+dsharp.config(device=sym?Default, dtype=sym?Default, backend=Backend.Symbolic) // symbolic default device, symbolic default dtype
+dsharp.tensor([1;1])
+dsharp.zeros([sym?M;sym?N])
+dsharp.zeros([sym?M;sym?N]) + dsharp.zeros([sym?M;sym?N])
+dsharp.zeros([sym?M;sym?N]) + dsharp.zeros([1;1])
+dsharp.zeros([1;2]) + dsharp.zeros([1;1])
+dsharp.zero() + dsharp.zero()
+
 
 type VAE(xDim:int, zDim:int, ?hDims:seq<int>, ?activation:Tensor->Tensor, ?activationLast:Tensor->Tensor) =
     inherit Model()
@@ -100,10 +108,18 @@ type VAE(xDim:int, zDim:int, ?hDims:seq<int>, ?activation:Tensor->Tensor, ?activ
 dsharp.config(backend=Backend.Torch, device=Device.CPU)
 dsharp.seed(0)
 
+let model = VAE(28*28, 16, [512; 256])
+
+model.nparameters
+model.parameters
+model.parameters.dtype
+model.parameters.shape
+
+(*
+
 let trainSet = MNIST("./mnist", train=true, transform=id)
 let trainLoader = trainSet.loader(batchSize=32, shuffle=true)
 
-let model = VAE(28*28, 16, [512; 256])
 printfn "%A" model
 
 let optimizer = Adam(model, lr=dsharp.tensor(0.001))
@@ -122,3 +138,4 @@ for epoch = 0 to epochs do
             let samples = model.sample(64).view([-1; 1; 28; 28])
             samples.saveImage(sprintf "samples_%A_%A.png" epoch i)
 
+*)

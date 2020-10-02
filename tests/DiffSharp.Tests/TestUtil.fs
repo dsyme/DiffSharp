@@ -98,6 +98,7 @@ type ComboInfo(?defaultBackend: Backend, ?defaultDevice: Device, ?defaultDtype: 
         | Dtype.Int32 -> arr |> Array.map int32 :> Array
         | Dtype.Int64  -> arr |> Array.map int64 :> Array
         | Dtype.Bool -> arr |> Array.map (fun x -> abs x >= 1.0) :> Array
+        | Dtype.Sym _ -> failwith "unexpected symbolic"
 
     member c.arrayCreator2D(arr: double[,]) : Array =
         match c.dtype with 
@@ -109,6 +110,7 @@ type ComboInfo(?defaultBackend: Backend, ?defaultDevice: Device, ?defaultDtype: 
         | Dtype.Int32 -> arr |> Array2D.map int32 :> Array
         | Dtype.Int64  -> arr |> Array2D.map int64 :> Array
         | Dtype.Bool -> arr |> Array2D.map (fun x -> abs x >= 1.0) :> Array
+        | Dtype.Sym _ -> failwith "unexpected symbolic"
 
 module Dtypes =
 
