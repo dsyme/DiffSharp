@@ -488,8 +488,8 @@ type TestTensor () =
         Assert.AreEqual(2.0, System.Convert.ToDouble (t0.toScalar()))
 
         let t1 = combo.tensor([ 0 .. 10 ])
-        let t1slice1 = t1.primalRaw.GetSlice(array2D [ [ 3; 4; 0 ] ])
-        let t1slice2 = t1.primalRaw.GetSlice(array2D [ [ 3; 3; 0 ] ])
+        let t1slice1 = t1.primalRaw.GetSlice(array2D [ [ Dim 3; Dim 4; Dim 0 ] ])
+        let t1slice2 = t1.primalRaw.GetSlice(array2D [ [ Dim 3; Dim 3; Dim 0 ] ])
 
         Assert.AreEqual(3, t1slice1.GetItem(0))
         Assert.AreEqual(4, t1slice1.GetItem(1))
@@ -506,7 +506,7 @@ type TestTensor () =
         //Assert.AreEqual(0, t1slice3.Dim)
 
         let t2 = combo.tensor([ for i in 0 .. 10 -> [ i*10 .. i*10+10 ] ])
-        let t2slice1 = t2.primalRaw.GetSlice(array2D [ [ 3; 5; 0 ]; [ 3; 5; 0 ] ])
+        let t2slice1 = t2.primalRaw.GetSlice(array2D [ [ Dim 3; Dim 5; Dim 0 ]; [ Dim 3; Dim 5; Dim 0 ] ])
 
         Assert.AreEqual(33, t2slice1.GetItem(0, 0))
         Assert.AreEqual(34, t2slice1.GetItem(0, 1))
@@ -518,12 +518,12 @@ type TestTensor () =
         Assert.AreEqual(54, t2slice1.GetItem(2, 1))
         Assert.AreEqual(55, t2slice1.GetItem(2, 2))
 
-        let t2slice2 = t2.primalRaw.GetSlice(array2D [ [ 3; 5; 0 ]; [ 3; 3; 1 ] ])
+        let t2slice2 = t2.primalRaw.GetSlice(array2D [ [ Dim 3; Dim 5; Dim 0 ]; [ Dim 3; Dim 3; Dim 1 ] ])
         Assert.AreEqual(33, t2slice2.GetItem(0))
         Assert.AreEqual(43, t2slice2.GetItem(1))
         Assert.AreEqual(53, t2slice2.GetItem(2))
 
-        let t2slice3 = t2.primalRaw.GetSlice(array2D [ [ 3; 3; 1 ]; [ 3; 5; 0 ] ])
+        let t2slice3 = t2.primalRaw.GetSlice(array2D [ [ Dim 3; Dim 3; Dim 1 ]; [ Dim 3; Dim 5; Dim 0 ] ])
         Assert.AreEqual(33, t2slice3.GetItem(0))
         Assert.AreEqual(34, t2slice3.GetItem(1))
         Assert.AreEqual(35, t2slice3.GetItem(2))

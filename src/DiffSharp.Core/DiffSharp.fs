@@ -53,31 +53,43 @@ type dsharp =
     static member load(fileName, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor.load(fileName, ?dtype=dtype, ?device=device, ?backend=backend)
 
     /// <summary>Returns a new uninitialized tensor filled with arbitrary values for the given shape, element type and configuration</summary>
-    static member empty(shape:seq<int>, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Empty(shape|>Seq.toArrayQuick, ?dtype=dtype, ?device=device, ?backend=backend))
+    static member empty(shape:Shape, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Empty(shape, ?dtype=dtype, ?device=device, ?backend=backend))
+
+    /// <summary>Returns a new uninitialized tensor filled with arbitrary values for the given shape, element type and configuration</summary>
+    static member empty(shape:seq<int>, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Empty(shape|>Shape.constant, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>Returns a new uninitialized tensor filled with arbitrary values for the given length, element type and configuration</summary>
-    static member empty(length:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Empty([|length|], ?dtype=dtype, ?device=device, ?backend=backend))
+    static member empty(length:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Empty(Shape.constant [|length|], ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>Get the scalar zero tensor for the given configuration</summary>
     static member zero(?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Zero(?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>Returns a new tensor filled with '0' values for the given shape, element type and configuration</summary>
-    static member zeros(shape:seq<int>, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Zeros(shape|>Shape.create, ?dtype=dtype, ?device=device, ?backend=backend))
+    static member zeros(shape:Shape, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Zeros(shape, ?dtype=dtype, ?device=device, ?backend=backend))
+
+    /// <summary>Returns a new tensor filled with '0' values for the given shape, element type and configuration</summary>
+    static member zeros(shape:seq<int>, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Zeros(shape|>Shape.constant, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>Returns a new tensor filled with '0' values for the given length, element type and configuration</summary>
-    static member zeros(length:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Zeros([|length|], ?dtype=dtype, ?device=device, ?backend=backend))
+    static member zeros(length:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Zeros(Shape.constant [|length|], ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>Get the scalar '1' tensor for the given configuration</summary>
     static member one(?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.One(?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>Returns a new tensor filled with '1' values for the given shape, element type and configuration</summary>
-    static member ones(shape:seq<int>, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Ones(shape|>Shape.create, ?dtype=dtype, ?device=device, ?backend=backend))
+    static member ones(shape:Shape, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Ones(shape, ?dtype=dtype, ?device=device, ?backend=backend))
+
+    /// <summary>Returns a new tensor filled with '1' values for the given shape, element type and configuration</summary>
+    static member ones(shape:seq<int>, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Ones(shape|>Shape.constant, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>Returns a new tensor of the given length filled with '1' values for the given element type and configuration</summary>
-    static member ones(length:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Ones([|length|], ?dtype=dtype, ?device=device, ?backend=backend))
+    static member ones(length:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Ones(Shape.constant [|length|], ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>Returns a new tensor filled with the scalar <paramref name="value" />, for the given shape, element type and configuration</summary>
-    static member full(shape:seq<int>, value:obj, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Full(shape|>Shape.create, value, ?dtype=dtype, ?device=device, ?backend=backend))
+    static member full(shape:Shape, value:obj, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Full(shape, value, ?dtype=dtype, ?device=device, ?backend=backend))
+
+    /// <summary>Returns a new tensor filled with the scalar <paramref name="value" />, for the given shape, element type and configuration</summary>
+    static member full(shape:seq<int>, value:obj, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Full(shape|>Shape.constant, value, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>Returns a new tensor of the given length filled with <paramref name="value" />, for the given element type and configuration</summary>
     static member full(length:int, value:scalar, ?dtype:Dtype, ?device:Device, ?backend:Backend) = dsharp.zero(?dtype=dtype, ?device=device, ?backend=backend).fullLike(value, [|length|])
@@ -102,22 +114,31 @@ type dsharp =
     static member onehot(length:int, hot:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = dsharp.zero(?dtype=dtype, ?device=device, ?backend=backend).onehotLike(length, hot)
 
     /// <summary>TBD</summary>
-    static member rand(shape:seq<int>, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Random(shape|>Shape.create, ?dtype=dtype, ?device=device, ?backend=backend))
+    static member rand(shape:Shape, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Random(shape, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>TBD</summary>
-    static member rand(length:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Random([|length|], ?dtype=dtype, ?device=device, ?backend=backend))
+    static member rand(shape:seq<int>, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Random(shape|>Shape.constant, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>TBD</summary>
-    static member randn(shape:seq<int>, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.RandomNormal(shape|>Shape.create, ?dtype=dtype, ?device=device, ?backend=backend))
+    static member rand(length:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.Random(Shape.constant [|length|], ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>TBD</summary>
-    static member randn(length:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.RandomNormal([|length|], ?dtype=dtype, ?device=device, ?backend=backend))
+    static member randn(shape:Shape, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.RandomNormal(shape, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>TBD</summary>
-    static member randint(low:int, high:int, shape:seq<int>, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.RandomInt(shape|>Shape.create, low, high, ?dtype=dtype, ?device=device, ?backend=backend))
+    static member randn(shape:seq<int>, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.RandomNormal(shape|>Shape.constant, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>TBD</summary>
-    static member randint(low:int, high:int, length:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.RandomInt([|length|], low, high, ?dtype=dtype, ?device=device, ?backend=backend))
+    static member randn(length:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.RandomNormal(Shape.constant [|length|], ?dtype=dtype, ?device=device, ?backend=backend))
+
+    /// <summary>TBD</summary>
+    static member randint(low:int, high:int, shape:Shape, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.RandomInt(shape, low, high, ?dtype=dtype, ?device=device, ?backend=backend))
+
+    /// <summary>TBD</summary>
+    static member randint(low:int, high:int, shape:seq<int>, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.RandomInt(shape|>Shape.constant, low, high, ?dtype=dtype, ?device=device, ?backend=backend))
+
+    /// <summary>TBD</summary>
+    static member randint(low:int, high:int, length:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = Tensor(RawTensor.RandomInt(Shape.constant [|length|], low, high, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// <summary>TBD</summary>
     static member multinomial(probs:Tensor, numSamples:int, ?dtype:Dtype, ?device:Device, ?backend:Backend) = probs.multinomial(numSamples, ?dtype=dtype, ?device=device, ?backend=backend)
@@ -446,13 +467,13 @@ type dsharp =
     static member maxpool3di(a:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>) = a.maxpool3di(?kernelSize=kernelSize, ?stride=stride, ?padding=padding, ?kernelSizes=kernelSizes, ?strides=strides, ?paddings=paddings)
 
     /// <summary>TBD</summary>
-    static member maxunpool1d(a:Tensor, indices:Tensor, kernelSize:int, ?stride:int, ?padding:int, ?outputSize:seq<int>) = a.maxunpool1d(indices, kernelSize, ?stride=stride, ?padding=padding, ?outputSize=outputSize)
+    static member maxunpool1d(a:Tensor, indices:Tensor, kernelSize:int, ?stride:int, ?padding:int, ?outputSize:seq<int>) = a.maxunpool1d(indices, kernelSize, ?stride=stride, ?padding=padding, ?outputSize=Option.map (Seq.map Dim) outputSize)
 
     /// <summary>TBD</summary>
-    static member maxunpool2d(a:Tensor, indices:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>, ?outputSize:seq<int>) = a.maxunpool2d(indices, ?kernelSize=kernelSize, ?stride=stride, ?padding=padding, ?kernelSizes=kernelSizes, ?strides=strides, ?paddings=paddings, ?outputSize=outputSize)
+    static member maxunpool2d(a:Tensor, indices:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>, ?outputSize:seq<int>) = a.maxunpool2d(indices, ?kernelSize=kernelSize, ?stride=stride, ?padding=padding, ?kernelSizes=kernelSizes, ?strides=strides, ?paddings=paddings, ?outputSize=Option.map (Seq.map Dim) outputSize)
 
     /// <summary>TBD</summary>
-    static member maxunpool3d(a:Tensor, indices:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>, ?outputSize:seq<int>) = a.maxunpool3d(indices, ?kernelSize=kernelSize, ?stride=stride, ?padding=padding, ?kernelSizes=kernelSizes, ?strides=strides, ?paddings=paddings, ?outputSize=outputSize)
+    static member maxunpool3d(a:Tensor, indices:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>, ?outputSize:seq<int>) = a.maxunpool3d(indices, ?kernelSize=kernelSize, ?stride=stride, ?padding=padding, ?kernelSizes=kernelSizes, ?strides=strides, ?paddings=paddings, ?outputSize=Option.map (Seq.map Dim) outputSize)
 
     /// <summary>TBD</summary>
     static member conv1d(a:Tensor, b:Tensor, ?stride:int, ?padding:int, ?dilation:int) = a.conv1d(b, ?stride=stride, ?padding=padding, ?dilation=dilation)
@@ -540,25 +561,36 @@ type dsharp with
 
     /// <summary>TBD</summary>
     static member mapi (mapping:int[]->Tensor->Tensor) (tensor:Tensor) = // Differentiable map
+        // TODO: the shape is correct, but dtype and device are taken from results (which must be consistent)
+        if tensor.symbolic then tensor else 
+        
         let tflat = tensor.view(-1)
-        let items = Array.init (tflat.nelement) (fun i -> mapping (flatIndexToIndex tensor.shape i) tflat.[i])
+        let items = Array.init (tflat.nelement) (fun i -> mapping (flatIndexToIndex tensor.shape.Values i) tflat.[i])
         dsharp.stack(items).view(tensor.shape)
 
     /// <summary>TBD</summary>
     static member mapi2 (mapping:int[]->Tensor->Tensor->Tensor) (tensor1:Tensor) (tensor2:Tensor) =  // Differentiable map2
         if tensor1.shape <> tensor2.shape then failwithf "Expecting tensor1.shape (%A) and tensor2.shape (%A) to be the same" tensor1.shape tensor2.shape
+
+        // TODO: the shape is correct, but dtype and device are taken from results (which must be consistent)
+        if tensor1.symbolic then tensor1 else
+        
         let tflat1 = tensor1.view(-1)
         let tflat2 = tensor2.view(-1)
-        let items = Array.init (tflat1.nelement) (fun i -> mapping (flatIndexToIndex tensor1.shape i) tflat1.[i] tflat2.[i])
+        let items = Array.init (tflat1.nelement) (fun i -> mapping (flatIndexToIndex tensor1.shape.Values i) tflat1.[i] tflat2.[i])
         dsharp.stack(items).view(tensor1.shape)
 
     /// <summary>TBD</summary>
     static member mapi3 (mapping:int[]->Tensor->Tensor->Tensor->Tensor) (tensor1:Tensor) (tensor2:Tensor) (tensor3:Tensor) =  // Differentiable map3
         if (tensor1.shape <> tensor2.shape) || (tensor2.shape <> tensor3.shape) then failwithf "Expecting tensor1.shape (%A), tensor2.shape (%A), tensor3.shape (%A) to be the same" tensor1.shape tensor2.shape tensor3.shape
+
+        // TODO: the shape is correct, but dtype and device are taken from results (which must be consistent)
+        if tensor1.symbolic then tensor1 else
+        
         let tflat1 = tensor1.view(-1)
         let tflat2 = tensor2.view(-1)
         let tflat3 = tensor3.view(-1)
-        let items = Array.init (tflat1.nelement) (fun i -> mapping (flatIndexToIndex tensor1.shape i) tflat1.[i] tflat2.[i] tflat3.[i])
+        let items = Array.init (tflat1.nelement) (fun i -> mapping (flatIndexToIndex tensor1.shape.Values i) tflat1.[i] tflat2.[i] tflat3.[i])
         dsharp.stack(items).view(tensor1.shape)
 
     /// <summary>TBD</summary>
@@ -696,6 +728,7 @@ type dsharp with
     static member fjacobian (f:Tensor->Tensor) x =
         let fx, r = dsharp.evalReverseDiff f x
         if x.dim <> 1 || fx.dim <> 1 then failwithf "f must be a vector-valued function of a vector, encountered f:%A->%A" x.shape fx.shape
+        // TODO: symbolics
         if x.nelement > fx.nelement then
             fx, dsharp.stack(Array.init fx.nelement (fun i -> r (x.onehotLike(fx.nelement, i))), 0)
         else
@@ -766,7 +799,7 @@ type dsharp with
     /// <summary>TBD</summary>
     static member fcurl f x =
         let fx, j = dsharp.fjacobian f x
-        if j.shape <> [|3; 3|] then failwithf "f must be a function with a three-by-three Jacobian"
+        if j.shape <> Shape.constant [|3; 3|] then failwithf "f must be a function with a three-by-three Jacobian"
         fx, dsharp.stack([j.[2, 1] - j.[1, 2]; j.[0, 2] - j.[2, 0]; j.[1, 0] - j.[0, 1]])
 
     /// <summary>TBD</summary>
@@ -784,7 +817,7 @@ type dsharp with
     /// <summary>TBD</summary>
     static member fcurldivergence f x =
         let fx, j = dsharp.fjacobian f x
-        if j.shape <> [|3; 3|] then failwithf "f must be a function with a three-by-three Jacobian"
+        if j.shape <> Shape.constant [|3; 3|] then failwithf "f must be a function with a three-by-three Jacobian"
         fx, dsharp.stack([j.[2, 1] - j.[1, 2]; j.[0, 2] - j.[2, 0]; j.[1, 0] - j.[0, 1]]), j.trace()
 
     /// <summary>TBD</summary>

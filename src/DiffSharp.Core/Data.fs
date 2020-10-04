@@ -37,7 +37,7 @@ type DataLoader(dataset:Dataset, batchSize:int, ?shuffle:bool, ?numBatches:int, 
 type TensorDataset(data:Tensor, target:Tensor) =
     inherit Dataset()
     do if data.shape.[0] <> target.shape.[0] then failwith "Expecting data and target to have the same size in the first dimension"
-    override d.length = data.shape.[0]
+    override d.length = data.shape.[0].Value
     override d.item(i) = data.[i], target.[i]
 
 type MNIST(path:string, ?urls:seq<string>, ?train:bool, ?transform:Tensor->Tensor, ?targetTransform:Tensor->Tensor) =
@@ -96,5 +96,5 @@ type MNIST(path:string, ?urls:seq<string>, ?train:bool, ?transform:Tensor->Tenso
             |> dsharp.tensor
             |> dsharp.view ([n])
         | _ -> failwith "Given file is not in the MNIST format."
-    override d.length = data.shape.[0]
+    override d.length = data.shape.[0].Value
     override d.item(i) = transform data.[i], targetTransform target.[i]

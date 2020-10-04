@@ -38,9 +38,9 @@ module internal Utils =
         | ScalarType.Double -> Dtype.Float64
         |  _ -> failwith "fromTorchType - other type"
 
-    let toTorchShape (shape: Shape) : TorchShape = int64s shape
+    let toTorchShape (shape: Shape) : TorchShape = int64s shape.Values
 
-    let fromTorchShape (shape: int64[]) = shape |> Array.map int
+    let fromTorchShape (shape: int64[]) = shape |> Array.map int |> Shape.constant
 
     type Device with 
         member x.TorchDeviceType : TorchSharp.DeviceType = enum (int x.DeviceType)
@@ -85,7 +85,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
 
     override _.Shape = shape
     override _.Dim = shape.Length
-    override _.Nelement = shapeLength shape
+    override _.Nelement = Dim (shapeLength shape.Values)
     override _.Dtype = dtype
     override _.DeviceType : DiffSharp.DeviceType = enum (int tt.DeviceType)
     override t.Device = Device(t.DeviceType, tt.DeviceIndex)
@@ -97,8 +97,9 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
 
     member x.TorchTensor = tt
 
-    override t.GetSlice(fullBounds:int[,]) =
+    override t.GetSlice(fullBounds:Dim[,]) =
         let newShape = Shape.checkCanGetSlice t.Shape fullBounds
+        let fullBounds = fullBounds |> Array2D.map Dim.eval
         let mutable res = tt
         let mutable dim = 0 
         for i=0 to (fullBounds.GetLength(0) - 1) do
@@ -123,7 +124,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
 
         let shape = t.Shape
         let mutable res = hash shape
-        let n = shapeLength shape
+        let n = Shape.nelements shape |> Dim.eval
         match dtype with 
         | Dtype.Int8 ->
             let data = tt.Data<sbyte>()
@@ -174,7 +175,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
             | [| i0; i1; i2; i3 |] -> tt.[int64 i0, int64 i1, int64 i2, int64 i3]
             | _ -> 
                 let shape = t.Shape
-                tt.View(toTorchShape [|shapeLength shape|]).[int64 (indexToFlatIndex shape indexes)]
+                tt.View(toTorchShape (Shape [|Shape.nelements shape|])).[int64 (indexToFlatIndex shape.Values indexes)]
 
         // Torch Tensors must be CPU before DataItem can be accessed
         let item = torchMoveTo item Device.CPU
@@ -196,7 +197,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
         // Torch Tensors must be CPU before DataItem can be accessed
         let tt = torchMoveTo tt Device.CPU
 
-        match t.Shape with
+        match t.Shape.Values with
         | [|  |] -> t.GetItem()
         | [| d0 |] -> upcast Array.init<'T> d0 (fun i -> tt.[int64 i].DataItem<'T2>() |> conv)
         | [| d0; d1 |] -> upcast Array2D.init<'T> d0 d1 (fun i j -> tt.[int64 i, int64 j].DataItem<'T2>() |> conv)
@@ -260,6 +261,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
     override t.SplitT(sizes, dim) =
         let shape = t.Shape
         let outShapes = Shape.checkCanSplit shape sizes dim
+        let sizes = sizes |> Dims.eval
         let results = tt.SplitWithSizes(int64s sizes, dim)
         (results, outShapes) ||> Array.map2 (fun rvalues outShape -> 
             t.MakeLike(rvalues, shape=outShape))
@@ -267,7 +269,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
     override t.TransposeT(dim0, dim1) =
         Shape.checkCanTranspose t.Shape dim0 dim1
         let result = tt.Transpose(int64 dim0, int64 dim1)
-        let shape = result.Shape |> Array.map int32
+        let shape = result.Shape |> fromTorchShape
         t.MakeLike(result, shape=shape)
 
     override t.TransposeT2() =
@@ -282,7 +284,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
         let mutable res = tt
         let mutable c = 0
         for i in 0 .. t.Dim - 1 do
-            if shape.[i] = 1 && (dim = -1 || i = dim) then 
+            if shape.[i].Value = 1 && (dim = -1 || i = dim) then 
                 res <- res.Squeeze(int64 c)
             else   
                 c <- c + 1
@@ -308,10 +310,10 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
         let mutable res = tt
         for i=0 to dims-1 do
             let s = res.Shape
-            s.[i] <- int64 outputShape.[i]
+            s.[i] <- int64 outputShape.[i].Value
             let resnew = t.ZerosLike(fromTorchShape s)
-            let indices = Array.init t.Shape.[i] id |> Array.map ((*) dilations.[i] >> int64)
-            let mutable d = TorchInt64TensorOps().CreateFromFlatArray(indices, shape=[|t.Shape.[i]|], device=t.Device)
+            let indices = Array.init t.Shape.[i].Value id |> Array.map ((*) dilations.[i] >> int64)
+            let mutable d = TorchInt64TensorOps().CreateFromFlatArray(indices, shape=Shape [|t.Shape.[i]|], device=t.Device)
             for _=0 to i-1 do
                 d <- d.UnsqueezeT(0)
             for _=i+1 to dims-1 do
@@ -325,7 +327,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
         let outputShape = Shape.undilatedShape shape dilations
         let mutable res = tt
         for d in 0 .. dilations.Length - 1 do
-            res <- res.Slice(int64 d, 0L, int64 shape.[d], int64 dilations.[d])
+            res <- res.Slice(int64 d, 0L, int64 shape.[d].Value, int64 dilations.[d])
         t.MakeLike(res, outputShape)
 
     override t.GatherT(dim:int, indices) =
@@ -442,8 +444,9 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
         let result = tt.Add(t2.TorchTensor) 
         t1.MakeLike(result)
 
-    override t1.AddTTSlice(location:int[], t2) =
+    override t1.AddTTSlice(location:Dim[], t2) =
         Shape.checkCanAddSlice t1.Shape location t2.Shape
+        let location = location |> Dims.eval
         let shape1 = t1.Shape
         let shape2 = t2.Shape
         let expandedShape2 = Shape.unsqueezeAs shape2 shape1
@@ -451,8 +454,8 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
         let res = tt.Clone()
         let mutable t1Slice = res // will share memory with res
         for d in 0 .. location.Length - 1 do 
-            let len2 = expandedShape2.[d]
-            if location.[d] <> 0 || len2 <> shape1.[d] then 
+            let len2 = expandedShape2.[d].Value
+            if location.[d] <> 0 || len2 <> shape1.[d].Value then 
                 t1Slice <- t1Slice.Narrow(int64 d, int64 location.[d], int64 len2)
         t1Slice.AddInPlace(t2Expanded) |> ignore
         t1.MakeLike(res)
@@ -542,7 +545,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
                 tt1.Mm(tt2).Round().ToType(toTorchType dtype) 
             | _ ->
                 tt.Mm(t2.TorchTensor)
-        t1.MakeLike(result, [| t1.Shape.[0]; t2.Shape.[1] |])
+        t1.MakeLike(result, Shape [| t1.Shape.[0]; t2.Shape.[1] |])
 
     override t1.Conv1D(t2, stride, padding) = // TODO: bias, dilation and groups
         let _batchSize, _inputChannels, _kernelSize, _outputChannels, _outputSize, outputShape =
@@ -617,7 +620,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
         //let batchSize, channels, _inputSize, _outputShape = Shape.computeMaxUnpool1d t1.Shape outputSize
         let t1X = t1.UnsqueezeT(2)
         let indicesX = indices.UnsqueezeT(2)
-        let resulttX = t1X.MaxUnpool2D(indicesX, [| outputSize.[0]; outputSize.[1]; 1; outputSize.[2] |])
+        let resulttX = t1X.MaxUnpool2D(indicesX, [| outputSize.[0]; outputSize.[1]; Dim 1; outputSize.[2] |])
         let resultt = resulttX.SqueezeT(2)
         resultt
 
@@ -629,7 +632,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
 
         // note, LibTorch only wants the last two elements of the output size passsed in
         // "There should be exactly two elements (height, width) in output_size (max_unpooling2d_shape_check at ...)"
-        let outputSize = outputSize.[2..3]
+        let outputSize = outputSize.[2..3] |> Dims.eval
         
         // TODO: consider switching to the torch::nn module for MaxUnpool2d
 
@@ -644,7 +647,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
 
         // note, LibTorch only wants the last three elements of the output size passsed in
         // "There should be exactly three elements (depth, height, width) in output_size (max_unpooling3d_shape_check at ..\..\aten\src\ATen\native\MaxUnpooling.cpp:231)"
-        let outputSize = outputSize.[2..4]
+        let outputSize = outputSize.[2..4] |> Dims.eval
         
         // NOTE: strides and padding must always be specified for torch::max_unpool3d C++ entry
         // TODO: consider switching to the torch::nn module for MaxUnpool
@@ -655,7 +658,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
 
     override t.SumT2Dim0() =
         let result = tt.Sum([| 0L |], ``type``= Nullable(tt.Type))
-        let resultShape = [|t.Shape.[1]|]
+        let resultShape = Shape [|t.Shape.[1]|]
         t.MakeLike(result, shape=resultShape)
 
     override t.NegT() =
@@ -852,7 +855,7 @@ type TorchTensorOps<'T, 'T2>
     member _.CreateFromFlatArray(values:Array, shape:Shape, device:Device) : RawTensor =
         let values = values :?> 'T[] |> Array.map conv 
         let t = 
-            match shape with 
+            match shape.Values with 
             | [| |] -> fromScalar(values.[0])
             | _ -> from (values, toTorchShape shape)
         let tt = torchMoveTo t device

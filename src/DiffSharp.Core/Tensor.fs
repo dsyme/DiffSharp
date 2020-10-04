@@ -67,7 +67,7 @@ type Tensor =
         if t.backend = backend then t else
         match t with
         | Tensor(tp) -> 
-            let tpflat = tp.ViewT([|tp.Nelement|]) //
+            let tpflat = tp.ViewT(Shape [|tp.Nelement|]) //
             let tpflatValues = tpflat.ToValues()
             Tensor(tp.CreateLike(tpflatValues, backend=backend).ViewT(tp.Shape))
         | TensorF(_) -> failwith "Cannot move TensorF - do not move during differentiation"
@@ -140,6 +140,9 @@ type Tensor =
 
     /// Gets the backend of the tensor
     member t.backend = t.primalRaw.Backend
+
+    /// Determine if the tensor might have symbolic shape, dtype, device
+    member t.symbolic = (t.backend = Backend.Symbolic)
 
     /// Gets the differentiation depth of the tensor
     member t.depth =
@@ -248,7 +251,10 @@ type Tensor =
     member t.dim = t.primalRaw.Dim
 
     /// Gets the number of elements in the tensor
-    member t.nelement = t.primalRaw.Nelement
+    member t.nelement = t.primalRaw.Nelement.Value
+
+    /// Gets the number of elements in the tensor as a Dim
+    member t.nelementd = t.primalRaw.Nelement
 
     /// Returns the value of a (non-scalar) tensor as an array
     member t.toArray() = t.primalRaw.ToArray()
@@ -430,20 +436,32 @@ type Tensor =
     /// Returns a new tensor filled with '0' values for the given shape, element type and configuration, defaulting to the 
     /// shape and configuration of the input tensor.
     member a.zerosLike(?shape:seq<int>, ?dtype, ?device, ?backend) = 
-        let shape = defaultArg shape (a.shape |> Array.toSeq)
-        Tensor(a.primalRaw.ZerosLike(shape |> Array.ofSeq, ?dtype=dtype, ?device=device, ?backend=backend))
+        let shape = shape |> Option.map Shape.constant
+        let shape = defaultArg shape a.shape
+        Tensor(a.primalRaw.ZerosLike(shape, ?dtype=dtype, ?device=device, ?backend=backend))
+
+    member a.zerosLike(shape:Shape, ?dtype, ?device, ?backend) = 
+        Tensor(a.primalRaw.ZerosLike(shape, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// Returns a new tensor filled with '1' values for the given shape, element type and configuration, defaulting to the 
     /// shape and configuration of the input tensor.
     member a.onesLike(?shape:seq<int>, ?dtype, ?device, ?backend) = 
-        let shape = defaultArg shape (a.shape |> Array.toSeq)
-        Tensor(a.primalRaw.OnesLike(shape |> Array.ofSeq, ?dtype=dtype, ?device=device, ?backend=backend))
+        let shape = shape |> Option.map Shape.constant
+        let shape = defaultArg shape a.shape
+        Tensor(a.primalRaw.OnesLike(shape, ?dtype=dtype, ?device=device, ?backend=backend))
+
+    member a.onesLike(shape:Shape, ?dtype, ?device, ?backend) = 
+        Tensor(a.primalRaw.OnesLike(shape, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// Returns a new tensor filled with the given scalar value for the given shape, element type and configuration, defaulting to the 
     /// shape and configuration of the input tensor.
     member a.fullLike(value:scalar, ?shape:seq<int>, ?dtype, ?device, ?backend) = 
-        let shape = defaultArg shape (a.shape |> Array.toSeq)
-        Tensor(a.primalRaw.FullLike(shape |> Array.ofSeq, value, ?dtype=dtype, ?device=device, ?backend=backend))
+        let shape = shape |> Option.map Shape.constant
+        let shape = defaultArg shape a.shape
+        Tensor(a.primalRaw.FullLike(shape, value, ?dtype=dtype, ?device=device, ?backend=backend))
+
+    member a.fullLike(value:scalar, shape:Shape, ?dtype, ?device, ?backend) = 
+        Tensor(a.primalRaw.FullLike(shape, value, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// Returns a new scalar tensor for the given shape, element type and configuration, defaulting to the 
     /// shape and configuration of the input tensor.
@@ -453,21 +471,32 @@ type Tensor =
     /// Returns a new tensor with random values drawn from the uniform distribution [0,1) for the
     /// given shape, element type and configuration, defaulting to the shape and configuration of the input tensor.
     member a.randLike(?shape:seq<int>, ?dtype, ?device, ?backend) = 
-        let shape = defaultArg shape (a.shape |> Array.toSeq)
-        Tensor(a.primalRaw.RandomLike((shape |> Array.ofSeq), ?dtype=dtype, ?device=device, ?backend=backend))
+        let shape = shape |> Option.map Shape.constant
+        let shape = defaultArg shape a.shape
+        Tensor(a.primalRaw.RandomLike(shape, ?dtype=dtype, ?device=device, ?backend=backend))
+
+    member a.randLike(shape:Shape, ?dtype, ?device, ?backend) = 
+        Tensor(a.primalRaw.RandomLike(shape, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// Returns a new tensor with random values drawn from the standard normal distribution, for the
-
     /// given shape, element type and configuration, defaulting to the shape and configuration of the input tensor.
     member a.randnLike(?shape:seq<int>, ?dtype, ?device, ?backend) = 
-        let shape = defaultArg shape (a.shape |> Array.toSeq)
-        Tensor(a.primalRaw.RandomNormalLike(shape |> Array.ofSeq, ?dtype=dtype, ?device=device, ?backend=backend))
+        let shape = shape |> Option.map Shape.constant
+        let shape = defaultArg shape a.shape
+        Tensor(a.primalRaw.RandomNormalLike(shape, ?dtype=dtype, ?device=device, ?backend=backend))
+
+    member a.randnLike(shape:Shape, ?dtype, ?device, ?backend) = 
+        Tensor(a.primalRaw.RandomNormalLike(shape, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// Returns a new tensor with random integer values drawn from the given range, for the
     /// given shape, element type and configuration, defaulting to the shape and configuration of the input tensor.
     member a.randintLike(low:int, high:int, ?shape:seq<int>, ?dtype, ?device, ?backend) = 
-        let shape = defaultArg shape (a.shape |> Array.toSeq)
-        Tensor(a.primalRaw.RandomIntLike(shape |> Array.ofSeq, low, high, ?dtype=dtype, ?device=device, ?backend=backend))
+        let shape = shape |> Option.map Shape.constant
+        let shape = defaultArg shape a.shape
+        Tensor(a.primalRaw.RandomIntLike(shape, low, high, ?dtype=dtype, ?device=device, ?backend=backend))
+
+    member a.randintLike(low:int, high:int, shape: Shape, ?dtype, ?device, ?backend) = 
+        Tensor(a.primalRaw.RandomIntLike(shape, low, high, ?dtype=dtype, ?device=device, ?backend=backend))
 
     /// Returns a scalar '0' tensor for the given element type and configuration, defaulting to
     /// the element type and configuration of the input tensor.
@@ -506,6 +535,7 @@ type Tensor =
 
     /// Returns a tensor in the manner of <see cref="M:DiffSharp.dsharp.onehot"/> for the given element type and configuration, defaulting to
     /// the element type and configuration of the input tensor.
+    /// TODO: consider symbolics
     member a.onehotLike(length:int, hot:int, ?dtype, ?device, ?backend) =
         if hot < 0 || hot >= length then failwithf "Expecting 0 <= hot < length"
         a.zerosLike([|length|], ?dtype=dtype, ?device=device, ?backend=backend).addSlice([|hot|], a.onesLike([|1|], ?dtype=dtype, ?device=device, ?backend=backend))
@@ -571,8 +601,9 @@ type Tensor =
         let mutable d = []
         let mutable i = 0
         let mutable j = offset
+        // TODO: symbolics-friendly version of this
         while not finished do
-            if i >= a.shape.[dim1] || j >= a.shape.[dim2] then 
+            if i >= a.shape.[dim1].Value || j >= a.shape.[dim2].Value then 
                 finished <- true
             elif j >= 0 then
                 // let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]]
@@ -583,7 +614,7 @@ type Tensor =
                                                             if jj < 2 then j else 1
                                                         else
                                                             if jj = 0 then 0
-                                                            elif jj = 1 then a.shape.[ii]-1
+                                                            elif jj = 1 then a.shape.[ii].Value-1
                                                             else 0
                                                         )
                 d <- [a.GetSlice(bounds)] |> List.append d
@@ -608,7 +639,9 @@ type Tensor =
     ///   </para>
     /// </remarks>
     member a.expand(newShape:seq<int>) =
-        let newShape = newShape|>Shape.create
+        a.expand(newShape|>Shape.constant)
+        
+    member a.expand(newShape:Shape) =
         if a.shape = newShape then a 
         else
             let newShape = Shape.completeExpand a.shape newShape  // Handles -1 semantics
@@ -633,8 +666,9 @@ type Tensor =
         let normalize = defaultArg normalize false
         if t.dim < 1 || t.dim > 4 then failwithf "Expecting the tensor 1 <= dim (%A) <= 4, received shape %A" t.dim t.shape
 
+        let sizes = t.shape.Values
         if t.dim = 4 then // we make an image grid
-            let mutable numItems = t.shape.[0]
+            let mutable numItems = sizes.[0]
             let cols = defaultArg gridCols (int(ceil(sqrt(float(numItems)))))
             if cols < 1 || cols > numItems then failwithf "Expecting 1 <= gridCols (%A) <= %A" cols numItems
             let mutable rows = 0
@@ -642,7 +676,7 @@ type Tensor =
             while items > 0 do
                 rows <- rows + 1
                 items <- items - cols
-            let c, h, w = t.shape.[1], t.shape.[2], t.shape.[3]
+            let c, h, w = sizes.[1], sizes.[2], sizes.[3]
             let mutable tgrid = t.zerosLike([h*rows; w*cols; c])
             // transform [n, c, h, w] to [n, h, w, c]
             let t:Tensor = t.transpose(1, 3)
@@ -663,13 +697,13 @@ type Tensor =
                 pixels <- pixels.view([1; 1; t.nelement])
                 pixels <- pixels.expand([3; -1; -1])
             elif t.dim = 2 then
-                pixels <- pixels.view([1; t.shape.[0]; t.shape.[1]])
+                pixels <- pixels.view([1; sizes.[0]; sizes.[1]])
                 pixels <- pixels.expand([3; -1; -1])
             else
-                if t.shape.[0] = 1 then
+                if sizes.[0] = 1 then
                     pixels <- pixels.expand([3; -1; -1])
-                elif t.shape.[0] <> 3 then 
-                    failwithf "Expecting the number of channels (%A) to be 1 or 3" t.shape.[0]
+                elif sizes.[0] <> 3 then 
+                    failwithf "Expecting the number of channels (%A) to be 1 or 3" sizes.[0]
             if pixelMin < 0. || pixelMin > 1. then failwithf "Expecting 0 <= pixelMin (%A) <= 1" pixelMin
             if pixelMax < 0. || pixelMax > 1. then failwithf "Expecting 0 <= pixelMax (%A) <= 1" pixelMax
             let pixelRange = pixelMax - pixelMin
@@ -687,7 +721,8 @@ type Tensor =
             let c = int (numZeroToOne * float(asciiPalette.Length)) - 1
             let c = min (asciiPalette.Length - 1) (max 0 c)
             asciiPalette.[c]
-        let h, w = pixels.shape.[0], pixels.shape.[1]
+        let sizes = pixels.shape.Values
+        let h, w = sizes.[0], sizes.[1]
         let sb = System.Text.StringBuilder()
         for y=0 to h-1 do
             for x=0 to w-1 do
@@ -698,7 +733,8 @@ type Tensor =
     /// <summary>Save tensor to an image file using png or jpg format</summary>
     member t.saveImage(fileName:string, ?pixelMin:double, ?pixelMax:double, ?normalize:bool, ?gridCols:int) =
         let pixels:Tensor = t.toImage(?pixelMin=pixelMin, ?pixelMax=pixelMax, ?normalize=normalize, ?gridCols=gridCols)
-        let c, h, w = pixels.shape.[0], pixels.shape.[1], pixels.shape.[2]        
+        let sizes = pixels.shape.Values
+        let c, h, w = sizes.[0], sizes.[1], sizes.[2]        
         let image = new SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.RgbaVector>(w, h)
         for y=0 to h-1 do
             for x=0 to w-1 do
@@ -734,9 +770,13 @@ type Tensor =
 
     /// <summary>TBD</summary>
     member internal t.GetSlice(bounds:int[,]) =
+        t.GetSlice(Array2D.map Dim bounds)
+
+    /// <summary>TBD</summary>
+    member internal t.GetSlice(bounds:Dim[,]) =
         // printfn "t.GetSlice bounds\n %A" bounds
         if t.dim = 0 then failwith "Cannot slice a scalar Tensor"
-        let fullBounds = Array2D.init t.dim 3 (fun i j -> if j=0 then 0 elif j=1 then t.shape.[i]-1 else 0)
+        let fullBounds = Array2D.init t.dim 3 (fun i j -> if j=0 then Dim 0 elif j=1 then t.shape.[i]-1 else Dim 0)
         bounds |> Array2D.iteri (fun i j v -> 
             if j=1 && v >= t.shape.[i] then failwithf "Index outside the bounds of Tensor shape %A" t.shape
             fullBounds.[i, j] <- v)
@@ -751,7 +791,7 @@ type Tensor =
         with get([<System.ParamArray>] index:int[]) =
             if t.dim = 0 then failwith "Cannot index a scalar Tensor"
             if index.Length > t.dim then failwithf "Expecting an index with <=%i dimensions" t.dim
-            let bounds = Array2D.init index.Length 3 (fun i j -> if j=2 then 1 else index.[i])
+            let bounds = Array2D.init index.Length 3 (fun i j -> if j=2 then Dim 1 else Dim index.[i])
             t.GetSlice(bounds)
 
     /// <summary>
@@ -830,6 +870,9 @@ type Tensor =
     /// <param name="sizes">List of sizes for each chunk</param>
     /// <param name="dim">The dimension along which to split the tensor, defaults to 0.</param>
     member a.split (sizes: seq<int>, ?dim: int) =
+        a.split (Seq.map Dim sizes, ?dim=dim)
+
+    member a.split (sizes: seq<Dim>, ?dim: int) =
         let dim = defaultArg dim 0
         let sizes = sizes |> Seq.toArray
         match a with
@@ -1250,14 +1293,16 @@ type Tensor =
         if dim = 0 && a.dim = 0 then a
         else
             if dim >= a.dim || dim < 0 then failwithf "Expecting dim to be between 0 and %A" a.dim
-            let sBounds = Array2D.init a.dim 3 (fun i j -> if j=0 then 0 elif j=1 then a.shape.[i]-1 else 0)
-            sBounds.[dim, 1] <- 0
-            sBounds.[dim, 2] <- 1
+            let sBounds = Array2D.init a.dim 3 (fun i j -> if j=0 then Dim 0 elif j=1 then a.shape.[i]-1 else Dim 0)
+            sBounds.[dim, 1] <- Dim 0
+            sBounds.[dim, 2] <- Dim 1
             let mutable s = a.zerosLike(dtype=a.dtype.SummationType).GetSlice(sBounds)
-            for i=0 to a.shape.[dim]-1 do
-                sBounds.[dim,0] <- i
-                sBounds.[dim,1] <- i
-                sBounds.[dim,2] <- 1
+            // Note: symbolics skip this
+            if not a.symbolic then 
+              for i=0 to a.shape.[dim].Value-1 do
+                sBounds.[dim,0] <- Dim i
+                sBounds.[dim,1] <- Dim i
+                sBounds.[dim,2] <- Dim 1
                 s <- s + a.GetSlice(sBounds).cast(a.dtype.SummationType)
             s
        let res2 = if keepDim then res.unsqueeze(dim) else res
@@ -1265,6 +1310,10 @@ type Tensor =
 
     /// <summary>Sum this tensor to size <paramref name="newShape" />, which must be broadcastable to this tensor size.</summary>
     member a.sumToSize(newShape:int[], ?dtype: Dtype) =
+        a.sumToSize(Shape.constant newShape, ?dtype=dtype)
+
+    /// <summary>Sum this tensor to size <paramref name="newShape" />, which must be broadcastable to this tensor size.</summary>
+    member a.sumToSize(newShape:Shape, ?dtype: Dtype) =
         let oldShape = a.shape
         if oldShape = newShape then
             a.cast(defaultArg dtype a.dtype.SummationType)
@@ -1284,7 +1333,7 @@ type Tensor =
             result.castAfterSummation(?dtype=dtype)
 
     /// <summary>Returns the mean value of all elements in the input tensor</summary>
-    member a.mean() = a.sum() / a.nelement
+    member a.mean() = a.sum() / a.nelementd.ValueOrOne
 
     /// <summary>Returns the mean value of each row of the input tensor in the given dimension dim.</summary>
     /// <remarks>If keepdim is True, the output tensor is of the same size as input except in the dimension dim where it is of size 1. Otherwise, dim is squeezed, resulting in the output tensor having 1 fewer dimension.</remarks>
@@ -1295,7 +1344,7 @@ type Tensor =
         if dim = 0 && a.dim = 0 then a
         else 
            let sm = a.sum(dim, ?keepDim=keepDim)
-           let dv = sm / a.shape.[dim]
+           let dv = sm / a.shape.[dim].ValueOrOne
            dv
 
     /// <summary>Returns the variance of all elements in the input tensor.</summary>
@@ -1303,8 +1352,8 @@ type Tensor =
     /// <param name="unbiased ">Whether to use the unbiased estimation or not.</param>
     member a.variance(?unbiased:bool) = 
         let unbiased = defaultArg unbiased true  // Use Bessel's correction if unbiased=true
-        let n = if unbiased then a.nelement - 1 else a.nelement
-        let a' = a - a.mean() in (a' * a').sum() / n
+        let n = if unbiased then a.nelementd - 1 else a.nelementd
+        let a' = a - a.mean() in (a' * a').sum() / n.ValueOrOne
 
     /// <summary>Returns the variance of each row of the input tensor in the given dimension dim.</summary>
     /// <remarks>
@@ -1315,20 +1364,24 @@ type Tensor =
     /// <param name="keepDim">Whether the output tensor has dim retained or not.</param>
     /// <param name="unbiased ">Whether to use the unbiased estimation or not.</param>
     member a.variance(dim:int, ?keepDim:bool, ?unbiased:bool) =
+      if a.symbolic then
+          a.mean(dim, ?keepDim=keepDim)
+      else
          // TODO: this is the naive algorithm, can be improved for better numerical stability
         let keepDim = defaultArg keepDim false
         let unbiased = defaultArg unbiased true  // Use Bessel's correction if unbiased=true
         let dim = Shape.completeDim a.dim dim  // Handles -1 semantics
-        let sBounds = Array2D.init a.dim 3 (fun i j -> if j=0 then 0 elif j=1 then a.shape.[i]-1 else 0)
-        sBounds.[dim, 1] <- 0
-        sBounds.[dim, 2] <- 1
+        let sBounds = Array2D.init a.dim 3 (fun i j -> if j=0 then Dim 0 elif j=1 then a.shape.[i]-1 else Dim 0)
+        sBounds.[dim, 1] <- Dim 0
+        sBounds.[dim, 2] <- Dim 1
         let mutable s = a.zerosLike().GetSlice(sBounds)
         let mutable sSquare = a.zerosLike().GetSlice(sBounds)
-        let n = a.shape.[dim]
+        // Note: symbolics skip this
+        let n = a.shape.[dim].Value
         for i=0 to n-1 do
-            sBounds.[dim,0] <- i
-            sBounds.[dim,1] <- i
-            sBounds.[dim,2] <- 1
+            sBounds.[dim,0] <- Dim i
+            sBounds.[dim,1] <- Dim i
+            sBounds.[dim,2] <- Dim 1
             let slice = a.GetSlice(sBounds)
             s <- s + slice
             sSquare <- sSquare + slice * slice
@@ -1412,7 +1465,8 @@ type Tensor =
         elif p = 1. then
             a * a.zerosLike()
         else
-            let mask = a.fullLike(1.-p, Array.append a.shape.[0..1] [|1;1|]).bernoulli()
+            let shape = Shape (Array.append a.shape.Dims.[0..1] [|Dim 1;Dim 1|])
+            let mask = a.fullLike(1.-p, shape).bernoulli()
             a * mask
 
     /// <summary>TBD</summary>
@@ -1424,7 +1478,8 @@ type Tensor =
         elif p = 1. then
             a * a.zerosLike()
         else
-            let mask = a.fullLike(1.-p, Array.append a.shape.[0..1] [|1;1;1|]).bernoulli()
+            let shape = Shape (Array.append a.shape.Dims.[0..1] [|Dim 1;Dim 1;Dim 1|])
+            let mask = a.fullLike(1.-p, shape).bernoulli()
             a * mask
 
     /// <summary>TBD</summary>
@@ -1507,12 +1562,17 @@ type Tensor =
 
     /// <summary>TBD</summary>
     member a.repeat(dim:int, times:int) =
+        a.repeat(dim, Dim times)
+
+    member a.repeat(dim:int, times:Dim) =
         Shape.checkCanRepeat a.shape dim
-        let newShape = a.shape |> Array.copy
+        let newShape = a.shape.Dims |> Array.copy
         newShape.[dim] <- times
-        let mutable ret = a.zerosLike(newShape)
+        // Note: symbolics skip this
+        if a.symbolic then a.zerosLike(Shape newShape) else
+        let mutable ret = a.zerosLike(Shape newShape)
         let location = Array.create a.dim 0
-        for i=0 to times-1 do
+        for i=0 to times.Value-1 do
             location.[dim] <- i
             ret <- ret.addSlice(location, a)
         ret
@@ -1528,7 +1588,12 @@ type Tensor =
 
     /// <summary>TBD</summary>
     member a.view(shape:seq<int>) =
-        let shape = shape |> Shape.create |> Shape.complete a.nelement  // Handles -1 semantics
+        let shape = shape |> Shape.constant
+        a.view(shape)
+
+    /// <summary>TBD</summary>
+    member a.view(shape:Shape) =
+        let shape = shape |> Shape.complete a.nelementd  // Handles -1 semantics
         Shape.checkCanView a.shape shape
         let fRaw(a:RawTensor) = a.ViewT(shape)
         let fTensor(a:Tensor) = a.view(shape)
@@ -1556,8 +1621,8 @@ type Tensor =
         else
             let startDim = defaultArg startDim 0
             let endDim = defaultArg endDim (a.dim - 1)
-            Shape.checkCanFlatten a.shape startDim endDim
-            a.view(a.shape |> Shape.flatten startDim endDim)
+            let shape = Shape.checkCanFlatten a.shape startDim endDim
+            a.view(shape)
 
     member internal a.clampWithMask(?low:scalar, ?high:scalar) =
         let lowTensor, highTensor = 
@@ -1805,7 +1870,11 @@ type Tensor =
 
     /// <summary>TBD</summary>
     member a.addSlice(location:seq<int>, b:Tensor) =
-        let location = location |> Seq.toArray
+        let location = location |> Seq.toArray |> Array.map Dim
+        a.addSlice(location, b)
+
+    member a.addSlice(location:seq<Dim>, b:Tensor) =
+        let location = location |> Seq.toArrayQuick
         Shape.checkCanAddSlice a.shape location b.shape
         let fRaw(a:RawTensor,b) = a.AddTTSlice(location, b)
         let fTensor(a:Tensor,b) = a.addSlice(location, b)
@@ -1859,7 +1928,7 @@ type Tensor =
         if input.dim < 1 then let ret:Tensor = input.view(-1).bceLoss(target.view(-1), ?weight=weight, ?reduction=reduction) in if ret.dim = 0 then ret else ret.[0]
         else
         let n = input.shape.[0]
-        let weight = defaultArg weight (input.onesLike(shape=[|n|]))
+        let weight = defaultArg weight (input.onesLike(shape=Shape[|n|]))
         if weight.shape.[0] <> n then failwithf "Expecting weight to be a vector of size %A, but received %A" n weight.shape.[0]
         let reduction = defaultArg reduction "mean"
         if not (reduction = "none" || reduction = "mean" || reduction = "sum") then failwithf "Expecting reduction (%A) to be one of (none, mean, sum)" reduction
@@ -1883,18 +1952,24 @@ type Tensor =
                 then failwithf "Expecting either: input with shape (N,C) and target with shape (N); or input with shape (N,C,d1,d2,...,dk) and target with shape (N,d1,d2,...,dk). Received input.shape %A and target.shape %A" input.shape target.shape
             elif input.dim = 2 then
                 let n, c = input.shape.[0], input.shape.[1]
-                if target.shape <> [|n|] then failwithf "Expecting either: input with shape (N,C) and target with shape (N); or input with shape (N,C,d1,d2,...,dk) and target with shape (N,d1,d2,...,dk). Received input.shape %A and target.shape %A" input.shape target.shape
-                n, c, [||]
+                if target.shape.Dims <> [|n|] then failwithf "Expecting either: input with shape (N,C) and target with shape (N); or input with shape (N,C,d1,d2,...,dk) and target with shape (N,d1,d2,...,dk). Received input.shape %A and target.shape %A" input.shape target.shape
+                n, c, Shape [||]
             else
                 let n, c, d = input.shape.[0], input.shape.[1], input.shape.[2..]
                 if target.shape.[0] <> n then failwithf "Expecting either: input with shape (N,C) and target with shape (N); or input with shape (N,C,d1,d2,...,dk) and target with shape (N,d1,d2,...,dk). Received input.shape %A and target.shape %A" input.shape target.shape
                 if d <> target.shape.[1..] then failwithf "Expecting either: input with shape (N,C) and target with shape (N); or input with shape (N,C,d1,d2,...,dk) and target with shape (N,d1,d2,...,dk). Received input.shape %A and target.shape %A" input.shape target.shape
                 n, c, d
+
+        // In symbolics the rest is skipped
+        if input.symbolic then input.sum() else
+        let n = n.Value
+        let classes = classes.Value
+
         let mutable weightSpecified = false
         let mutable ww = input.zeroLike()
         match weight with
         | Some w -> ww <- w; weightSpecified <- true
-        | None -> ww <- input.onesLike([classes]); weightSpecified <- false
+        | None -> ww <- input.onesLike([|classes|]); weightSpecified <- false
         let weight = ww
         let reduction = defaultArg reduction "mean"
         if not (reduction = "none" || reduction = "mean" || reduction = "sum") then failwithf "Expecting reduction (%A) to be one of (none, mean, sum)" reduction
@@ -1936,10 +2011,10 @@ type Tensor =
         if paddings |> Array.sum = 0 then
             a
         else
-            let shape = Array.copy a.shape
+            let shape = Array.copy a.shape.Dims
             for i in 0..shape.Length-1 do
                 shape.[i] <- shape.[i] + paddings.[i] * 2
-            let ret = a.zerosLike(shape)
+            let ret = a.zerosLike(Shape shape)
             ret.addSlice(paddings, a)
 
     /// <summary>TBD</summary>
@@ -1956,7 +2031,7 @@ type Tensor =
     member a.maxpool1d(kernelSize:int, ?stride:int, ?padding:int) = a.maxpool1di(kernelSize, ?stride=stride, ?padding=padding) |> fst
 
     /// <summary>TBD</summary>
-    member a.maxunpool1d(indices:Tensor, kernelSize:int, ?stride:int, ?padding:int, ?outputSize:seq<int>) =
+    member a.maxunpool1d(indices:Tensor, kernelSize:int, ?stride:int, ?padding:int, ?outputSize:seq<Dim>) =
         let stride = defaultArg stride kernelSize
         let padding = defaultArg padding 0
         let outputSize = 
@@ -2002,7 +2077,7 @@ type Tensor =
     member a.maxpool2d(?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>) = a.maxpool2di(?kernelSize=kernelSize, ?stride=stride, ?padding=padding, ?kernelSizes=kernelSizes, ?strides=strides, ?paddings=paddings) |> fst
 
     /// <summary>TBD</summary>
-    member a.maxunpool2d(indices:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>, ?outputSize:seq<int>) =
+    member a.maxunpool2d(indices:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>, ?outputSize:seq<Dim>) =
         let kernelSizes =
             match kernelSize, kernelSizes with
             | Some _, Some _ -> failwithf "Expecting only one of kernelSize, kernelSizes"
@@ -2065,7 +2140,7 @@ type Tensor =
     member a.maxpool3d(?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>) = a.maxpool3di(?kernelSize=kernelSize, ?stride=stride, ?padding=padding, ?kernelSizes=kernelSizes, ?strides=strides, ?paddings=paddings) |> fst
 
     /// <summary>TBD</summary>
-    member a.maxunpool3d(indices:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>, ?outputSize:seq<int>) =
+    member a.maxunpool3d(indices:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>, ?outputSize:seq<Dim>) =
         let kernelSizes =
             match kernelSize, kernelSizes with
             | Some _, Some _ -> failwithf "Expecting only one of kernelSize, kernelSizes"
@@ -2125,12 +2200,13 @@ type Tensor =
     static member internal conv1dReverseDiff(a: Tensor, b:Tensor, cderivative:Tensor, aConst:bool, bConst:bool, stride:int, padding:int) =
         let a = if aConst then a else a.primal
         let b = if bConst then b else b.primal
-        let batchSize = cderivative.shape.[0]
-        let outputChannels = cderivative.shape.[1]
-        // let outputLength = cderivative.shape.[2]
-        let inputChannels = a.shape.[1]
-        let inputLength = a.shape.[2]
-        let kernelLength = b.shape.[2]
+        if a.symbolic then a.zeroLike(), b.zeroLike() else
+        let batchSize = cderivative.shape.[0].Value
+        let outputChannels = cderivative.shape.[1].Value
+        let outputLength = cderivative.shape.[2].Value
+        let inputChannels = a.shape.[1].Value
+        let inputLength = a.shape.[2].Value
+        let kernelLength = b.shape.[2].Value
         let mutable cderivative = cderivative
         if stride > 1 then
             cderivative <- cderivative.dilate([|1;1;stride|])
@@ -2142,7 +2218,7 @@ type Tensor =
             let bFlipped = b.flip([|2|])
             for k=0 to outputChannels-1 do
                 let b = bFlipped.[k].view([|inputChannels; 1; kernelLength|])
-                let dBounds = array2D [[0; batchSize-1; 1]; [k; k; 1]; [0; cderivative.shape.[2]-1; 1]]
+                let dBounds = array2D [[0; batchSize-1; 1]; [k; k; 1]; [0; outputLength-1; 1]]
                 let d = cderivative.GetSlice(dBounds).view([|batchSize; 1; -1|])
                 let mutable ad = d.conv1d(b, padding=kernelLength-1)
                 if padding > 0 then
@@ -2150,16 +2226,16 @@ type Tensor =
                     ad <- ad.GetSlice(adBounds)
                     ad <- ad.view([|batchSize; inputChannels; inputLength|])
                 aderivative <- aderivative + ad
-        if not bConst then
+        if not a.symbolic && not bConst then
             // propagate to b
             bderivative <- b.zerosLike()
             for n=0 to batchSize-1 do
                 let aa = a.[n].view([|inputChannels; 1; inputLength|]) // treat size-one batch of a c-channel image as a size-c batch of one-channel images
                 let d = cderivative.[n]
                 for k=0 to outputChannels-1 do
-                    let dd = d.[k].view([|1; 1; cderivative.shape.[2]|])
+                    let dd = d.[k].view([|1; 1; outputLength|])
                     let mutable bd = aa.conv1d(dd, padding=padding)
-                    bd <- bd.view([|1; inputChannels; bd.shape.[2]|])
+                    bd <- bd.view([|1; inputChannels; bd.shape.[2].Value|])
                     let cBounds = array2D [[0;0;1]; [0;inputChannels-1;1]; [0;kernelLength-1;1]]
                     bd <- bd.GetSlice(cBounds)                 
                     bd <- bd.view([|1; inputChannels; kernelLength|])
@@ -2173,7 +2249,7 @@ type Tensor =
         let dilation = defaultArg dilation 1
         let outputPadding = defaultArg outputPadding 0
 
-        let batchSize, inputChannels, kernelLength, outputChannels, outputSize, outputShape =
+        let _, _, _, _, _, outputShape =
             Shape.checkCanConvTranspose1d a.deviceType b.deviceType a.dtype b.dtype a.shape b.shape stride padding dilation outputPadding
         print outputShape
         let mutable b = b
@@ -2226,15 +2302,16 @@ type Tensor =
     static member internal conv2dReverseDiff(a: Tensor, b:Tensor, cderivative:Tensor, aConst:bool, bConst:bool, strides:int[], paddings:int[]) =
         let a = if aConst then a else a.primal
         let b = if bConst then b else b.primal
-        let batchSize = cderivative.shape.[0]
-        let outputChannels = cderivative.shape.[1]
-        // let outputHeight = cderivative.shape.[2]
-        // let outputWidth = cderivative.shape.[3]
-        let inputChannels = a.shape.[1]
-        let inputHeight = a.shape.[2]
-        let inputWidth = a.shape.[3]
-        let kernelHeight = b.shape.[2]
-        let kernelWidth = b.shape.[3]
+        if a.symbolic then a.zeroLike(), b.zeroLike() else
+        let batchSize = cderivative.shape.[0].Value
+        let outputChannels = cderivative.shape.[1].Value
+        let outputHeight = cderivative.shape.[2].Value
+        let outputWidth = cderivative.shape.[3].Value
+        let inputChannels = a.shape.[1].Value
+        let inputHeight = a.shape.[2].Value
+        let inputWidth = a.shape.[3].Value
+        let kernelHeight = b.shape.[2].Value
+        let kernelWidth = b.shape.[3].Value
         let mutable cderivative = cderivative
         if strides.[0] > 1 || strides.[1] > 1 then
             cderivative <- cderivative.dilate([|1;1;strides.[0];strides.[1]|])
@@ -2246,8 +2323,8 @@ type Tensor =
             let bFlipped = b.flip([|2;3|])
             for k=0 to outputChannels-1 do
                 let b = bFlipped.[k].view([|inputChannels; 1; kernelHeight; kernelWidth|])
-                let dBounds = array2D [[0; batchSize-1; 1]; [k; k; 1]; [0; cderivative.shape.[2]-1; 1]; [0; cderivative.shape.[3]-1; 1]]
-                let d = cderivative.GetSlice(dBounds).view([|batchSize; 1; cderivative.shape.[2]; cderivative.shape.[3]|])
+                let dBounds = array2D [[0; batchSize-1; 1]; [k; k; 1]; [0; outputHeight-1; 1]; [0; outputWidth-1; 1]]
+                let d = cderivative.GetSlice(dBounds).view([|batchSize; 1; outputHeight; outputWidth|])
                 let mutable ad : Tensor = d.conv2d(b, paddings=[|kernelHeight-1; kernelWidth-1|])
                 if paddings.[0] > 0 || paddings.[1] > 0 then
                     let adBounds = array2D [[0; batchSize-1; 1]; 
@@ -2264,10 +2341,10 @@ type Tensor =
                 let aa = a.[n].view([|inputChannels; 1; inputHeight; inputWidth|]) // treat size-one batch of a c-channel image as a size-c batch of one-channel images
                 let d = cderivative.[n]
                 for k=0 to outputChannels-1 do
-                    let dd = d.[k].view([|1; 1; cderivative.shape.[2]; cderivative.shape.[3]|])
+                    let dd = d.[k].view([|1; 1; outputHeight; outputWidth|])
                     let mutable bd = aa.conv2d(dd, paddings=paddings)
                     // bd <- bd.view([|1; inputChannels; kernelHeight; kernelWidth|])
-                    bd <- bd.view([|1; inputChannels; bd.shape.[2]; bd.shape.[3]|])
+                    bd <- bd.view([|1; inputChannels; bd.shape.[2].Value; bd.shape.[3].Value|])
                     let cBounds = array2D [[0;0;1]; [0;inputChannels-1;1]; [0;kernelHeight-1;1]; [0;kernelWidth-1;1]]
                     bd <- bd.GetSlice(cBounds)                 
                     bd <- bd.view([|1; inputChannels; kernelHeight; kernelWidth|])
@@ -2354,18 +2431,19 @@ type Tensor =
     static member internal conv3dReverseDiff(a: Tensor, b:Tensor, cderivative:Tensor, aConst:bool, bConst:bool, strides:int[], paddings:int[]) =
         let a = if aConst then a else a.primal
         let b = if bConst then b else b.primal
-        let batchSize = cderivative.shape.[0]
-        let outputChannels = cderivative.shape.[1]
-        // let outputDepth = cderivative.shape.[2]
-        // let outputHeight = cderivative.shape.[3]
-        // let outputWidth = cderivative.shape.[4]
-        let inputChannels = a.shape.[1]
-        let inputDepth = a.shape.[2]
-        let inputHeight = a.shape.[3]
-        let inputWidth = a.shape.[4]
-        let kernelDepth = b.shape.[2]
-        let kernelHeight = b.shape.[3]
-        let kernelWidth = b.shape.[4]
+        if a.symbolic then a.zeroLike(), b.zeroLike() else
+        let batchSize = cderivative.shape.[0].Value
+        let outputChannels = cderivative.shape.[1].Value
+        let outputDepth = cderivative.shape.[2].Value
+        let outputHeight = cderivative.shape.[3].Value
+        let outputWidth = cderivative.shape.[4].Value
+        let inputChannels = a.shape.[1].Value
+        let inputDepth = a.shape.[2].Value
+        let inputHeight = a.shape.[3].Value
+        let inputWidth = a.shape.[4].Value
+        let kernelDepth = b.shape.[2].Value
+        let kernelHeight = b.shape.[3].Value
+        let kernelWidth = b.shape.[4].Value
         let mutable cderivative = cderivative
         if strides.[0] > 1 || strides.[1] > 1 || strides.[2] > 1 then
             cderivative <- cderivative.dilate([|1;1;strides.[0];strides.[1];strides.[2]|])
@@ -2377,8 +2455,8 @@ type Tensor =
             let bFlipped = b.flip([|2;3;4|])
             for k=0 to outputChannels-1 do
                 let b = bFlipped.[k].view([|inputChannels; 1; kernelDepth; kernelHeight; kernelWidth|])
-                let dBounds = array2D [[0; batchSize-1; 1]; [k; k; 1]; [0; cderivative.shape.[2]-1; 1]; [0; cderivative.shape.[3]-1; 1]; [0; cderivative.shape.[4]-1; 1]]
-                let d = cderivative.GetSlice(dBounds).view([|batchSize; 1; cderivative.shape.[2]; cderivative.shape.[3]; cderivative.shape.[4]|])
+                let dBounds = array2D [[0; batchSize-1; 1]; [k; k; 1]; [0; outputDepth-1; 1]; [0; outputHeight-1; 1]; [0; outputWidth-1; 1]]
+                let d = cderivative.GetSlice(dBounds).view([|batchSize; 1; outputDepth; outputHeight; outputWidth|])
                 let mutable ad : Tensor = d.conv3d(b, paddings=[|kernelDepth-1; kernelHeight-1; kernelWidth-1|])
                 if paddings.[0] > 0 || paddings.[1] > 0 || paddings.[2] > 0 then
                     let adBounds = array2D [[0; batchSize-1; 1]; 
@@ -2396,10 +2474,10 @@ type Tensor =
                 let aa = a.[n].view([|inputChannels; 1; inputDepth; inputHeight; inputWidth|]) // treat size-one batch of a c-channel image as a size-c batch of one-channel images
                 let d = cderivative.[n]
                 for k=0 to outputChannels-1 do
-                    let dd = d.[k].view([|1; 1; cderivative.shape.[2]; cderivative.shape.[3]; cderivative.shape.[4]|])
+                    let dd = d.[k].view([|1; 1; outputDepth; outputHeight; outputWidth|])
                     let mutable bd = aa.conv3d(dd, paddings=paddings)
                     // bd <- bd.view([|1; inputChannels; kernelHeight; kernelWidth|])
-                    bd <- bd.view([|1; inputChannels; bd.shape.[2]; bd.shape.[3]; bd.shape.[4]|])
+                    bd <- bd.view([|1; inputChannels; bd.shape.[2].Value; bd.shape.[3].Value; bd.shape.[4].Value|])
                     let bdBounds = array2D [[0;0;1]; [0;inputChannels-1;1]; [0;kernelDepth-1;1]; [0;kernelHeight-1;1]; [0;kernelWidth-1;1]]
                     bd <- bd.GetSlice(bdBounds)
                     bd <- bd.view([|1; inputChannels; kernelDepth; kernelHeight; kernelWidth|])
@@ -2631,9 +2709,9 @@ type Tensor =
                         | MatMulT2T2(a,b) -> push ((t.derivative.matmul(b.primal.transpose()), a) :: (a.primal.transpose().matmul(t.derivative), b) :: tt)
                         | MatMulT2T2Const(a,b) -> push ((t.derivative.matmul(b.transpose()), a) :: tt)
                         | MatMulT2ConstT2(a,b) -> push ((a.transpose().matmul(t.derivative), b) :: tt)
-                        | MaxPool1DT(a, indices, kernelSize) -> push ((t.derivative.maxunpool1d(indices, kernelSize=kernelSize, outputSize=a.shape), a) :: tt)
-                        | MaxPool2DT(a, indices, kernelSizes) -> push ((t.derivative.maxunpool2d(indices, kernelSizes=kernelSizes, outputSize=a.shape), a) :: tt)
-                        | MaxPool3DT(a, indices, kernelSizes) -> push ((t.derivative.maxunpool3d(indices, kernelSizes=kernelSizes, outputSize=a.shape), a) :: tt)
+                        | MaxPool1DT(a, indices, kernelSize) -> push ((t.derivative.maxunpool1d(indices, kernelSize=kernelSize, outputSize=a.shape.Dims), a) :: tt)
+                        | MaxPool2DT(a, indices, kernelSizes) -> push ((t.derivative.maxunpool2d(indices, kernelSizes=kernelSizes, outputSize=a.shape.Dims), a) :: tt)
+                        | MaxPool3DT(a, indices, kernelSizes) -> push ((t.derivative.maxunpool3d(indices, kernelSizes=kernelSizes, outputSize=a.shape.Dims), a) :: tt)
                         | MaxUnpool1DT(a, indices) -> push ((t.derivative.gather(dim=2, indices=indices), a) :: tt)
                         | MaxUnpool2DT(a, indices) -> push ((t.derivative.flatten(startDim=2).gather(dim=2, indices=indices.flatten(startDim=2)).viewAs(a), a) :: tt)
                         | MaxUnpool3DT(a, indices) -> push ((t.derivative.flatten(startDim=2).gather(dim=2, indices=indices.flatten(startDim=2)).viewAs(a), a) :: tt)
@@ -2679,20 +2757,21 @@ type Tensor =
                             push (List.append (Array.zip (t.derivative.split(sizes, dim=dim)) a |> Array.toList) tt)
                         | SplitT(a,sizes,dim,i) -> 
                             if a.derivative.dim = 0 then a.derivative <- a.zerosLike() + a.derivative
-                            let locs = (0,sizes) ||> Array.scan (+)
-                            a.derivative <- a.derivative.addSlice(Array.init a.dim (fun j -> if j=dim then locs.[i] else 0), t.derivative)
+                            let locs = (Dim 0,sizes) ||> Array.scan (+)
+                            a.derivative <- a.derivative.addSlice(Array.init a.dim (fun j -> if j=dim then locs.[i] else Dim 0), t.derivative)
                             push ((a.zeroLike(), a) :: tt)
                         | GatherT(a,dim,indices) -> 
                             // TODO: The following is a minimal correct implementation. Faster and more memory efficient implementations should be possible.
                             let tflat = t.derivative.flatten()
                             let iflat = indices.flatten()
                             if a.derivative.dim = 0 then a.derivative <- a.zerosLike() + a.derivative
-                            for i=0 to tflat.nelement-1 do
+                            if not a.symbolic then 
+                              for i=0 to tflat.nelement-1 do
                                 let mutable t = tflat.[i]
                                 for k=0 to a.dim-1 do
                                     t <- t.unsqueeze(0)
                                 let j = iflat.[i].toScalar() :?> int
-                                let loc = flatIndexToIndex a.shape i
+                                let loc = flatIndexToIndex a.shape.Values i
                                 loc.[dim] <- j
                                 a.derivative <- a.derivative.addSlice(loc, t)
                             push ((a.zeroLike(), a) :: tt)
@@ -2708,7 +2787,9 @@ type Tensor =
                         | SliceT(a,bounds) -> 
                             // TODO: a.zerosLike() below is to handle non-scalar TensorRs with a scalar derivative Tensor(0.) (representing the initialization before accumulation). This is correct but can be changed to eliminate the extra op.
                             if a.derivative.dim = 0 then a.derivative <- a.zerosLike() + a.derivative
-                            a.derivative <- a.derivative.addSlice(boundsToLocation bounds, t.derivative.view(boundsToShape bounds))
+                            if not a.symbolic then 
+                              let bounds = bounds |> Array2D.map (fun d -> d.Value)
+                              a.derivative <- a.derivative.addSlice(boundsToLocation bounds, t.derivative.view(boundsToShape bounds))
                             push ((a.zeroLike(), a) :: tt)
                         | AddTTSlice(a,location,b) -> push ((t.derivative, a) :: (t.derivative.GetSlice(Shape.locationToBounds b.shape location), b):: tt)
                         | AddTTConstSlice(a) -> push ((t.derivative, a) :: tt)
@@ -2810,9 +2891,9 @@ and TensorOp =
     | Conv3DTTConst of Tensor * Tensor * int[] * int[]
     | Conv3DTConstT of Tensor * Tensor * int[] * int[]
 
-    | AddTTSlice of Tensor * int[] * Tensor
+    | AddTTSlice of Tensor * Dim[] * Tensor
     | AddTTConstSlice of Tensor
-    | AddTConstTSlice of int[] * Tensor
+    | AddTConstTSlice of Dim[] * Tensor
 
     | NegT of Tensor
     | SumT of Tensor
@@ -2821,8 +2902,8 @@ and TensorOp =
     | StackTs of Tensor[] * dim:int
     | UnstackT of Tensor * dim:int * i:int
     | CatTs of Tensor[] * dim:int
-    | SplitT of Tensor * int[] * dim:int * i:int
-    | SliceT of Tensor * int[,]
+    | SplitT of Tensor * Dim[] * dim:int * i:int
+    | SliceT of Tensor * Dim[,]
     | GatherT of Tensor * int * Tensor
     | TransposeT of Tensor * int * int
     | TransposeT2 of Tensor
@@ -2831,7 +2912,7 @@ and TensorOp =
     | FlipT of Tensor * int[]
     | DilateT of Tensor * int[]
     | UndilateT of Tensor * int[]
-    | ViewT of Tensor * int[]
+    | ViewT of Tensor * Shape
     | ClampT of Tensor * Tensor
     | SignT of Tensor
     | FloorT of Tensor
@@ -2856,7 +2937,6 @@ and TensorOp =
     | AtanT of Tensor
     | NewT
 
-
 type Tensor with
     [<ExcludeFromCodeCoverage>]
     /// <summary></summary> <exclude />
@@ -2864,7 +2944,7 @@ type Tensor with
         // Dims: 1
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -2882,10 +2962,10 @@ type Tensor with
         // Dims: 2
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -2894,7 +2974,7 @@ type Tensor with
         // Dims: 2
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -2909,7 +2989,7 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -2930,13 +3010,13 @@ type Tensor with
         // Dims: 3
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -2945,10 +3025,10 @@ type Tensor with
         // Dims: 3
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -2960,13 +3040,13 @@ type Tensor with
         // Dims: 3
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -2975,7 +3055,7 @@ type Tensor with
         // Dims: 3
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -2993,10 +3073,10 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3008,7 +3088,7 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -3026,7 +3106,7 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3050,16 +3130,16 @@ type Tensor with
         // Dims: 4
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3068,13 +3148,13 @@ type Tensor with
         // Dims: 4
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -3086,16 +3166,16 @@ type Tensor with
         // Dims: 4
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3104,10 +3184,10 @@ type Tensor with
         // Dims: 4
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -3122,16 +3202,16 @@ type Tensor with
         // Dims: 4
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3140,13 +3220,13 @@ type Tensor with
         // Dims: 4
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -3158,7 +3238,7 @@ type Tensor with
         // Dims: 4
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -3167,7 +3247,7 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3176,7 +3256,7 @@ type Tensor with
         // Dims: 4
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -3197,13 +3277,13 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3215,10 +3295,10 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -3233,13 +3313,13 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3251,7 +3331,7 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -3272,10 +3352,10 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3290,7 +3370,7 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -3311,7 +3391,7 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3338,19 +3418,19 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3359,16 +3439,16 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -3380,19 +3460,19 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3401,13 +3481,13 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -3422,19 +3502,19 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3443,16 +3523,16 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -3464,10 +3544,10 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -3476,7 +3556,7 @@ type Tensor with
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3485,10 +3565,10 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -3506,19 +3586,19 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3527,16 +3607,16 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -3548,19 +3628,19 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3569,13 +3649,13 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -3590,7 +3670,7 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -3599,10 +3679,10 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3611,7 +3691,7 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -3620,7 +3700,7 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -3632,7 +3712,7 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -3644,7 +3724,7 @@ type Tensor with
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3653,7 +3733,7 @@ type Tensor with
         // Dims: 5
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -3677,16 +3757,16 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3698,13 +3778,13 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -3719,16 +3799,16 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3740,10 +3820,10 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -3761,16 +3841,16 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3782,13 +3862,13 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -3803,7 +3883,7 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -3812,7 +3892,7 @@ type Tensor with
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3824,7 +3904,7 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -3848,13 +3928,13 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3869,10 +3949,10 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -3890,13 +3970,13 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3911,7 +3991,7 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -3935,10 +4015,10 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -3956,7 +4036,7 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -3980,7 +4060,7 @@ type Tensor with
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4010,22 +4090,22 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4034,19 +4114,19 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -4058,22 +4138,22 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4082,16 +4162,16 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -4106,22 +4186,22 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4130,19 +4210,19 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -4154,13 +4234,13 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -4169,7 +4249,7 @@ type Tensor with
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4178,13 +4258,13 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -4202,22 +4282,22 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4226,19 +4306,19 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -4250,22 +4330,22 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4274,16 +4354,16 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -4298,10 +4378,10 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -4310,10 +4390,10 @@ type Tensor with
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4322,10 +4402,10 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -4334,7 +4414,7 @@ type Tensor with
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -4346,10 +4426,10 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -4361,7 +4441,7 @@ type Tensor with
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4370,10 +4450,10 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -4394,22 +4474,22 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4418,19 +4498,19 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -4442,22 +4522,22 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4466,16 +4546,16 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -4490,22 +4570,22 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4514,19 +4594,19 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -4538,13 +4618,13 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -4553,7 +4633,7 @@ type Tensor with
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4562,13 +4642,13 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -4586,7 +4666,7 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -4595,13 +4675,13 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4610,7 +4690,7 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -4619,10 +4699,10 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -4634,7 +4714,7 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -4643,13 +4723,13 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4658,7 +4738,7 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -4667,7 +4747,7 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -4682,7 +4762,7 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -4694,10 +4774,10 @@ type Tensor with
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4706,7 +4786,7 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -4718,7 +4798,7 @@ type Tensor with
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -4730,7 +4810,7 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -4745,7 +4825,7 @@ type Tensor with
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4754,7 +4834,7 @@ type Tensor with
         // Dims: 6
         let i0given = if i0min.IsSome || i0max.IsSome then 1 else 0
         let i0min   = defaultArg i0min 0
-        let i0max   = defaultArg i0max (t.shape.[0] - 1)
+        let i0max   = defaultArg i0max (t.shape.[0].Value - 1)
         let i1given = 1
         let i1min   = i1
         let i1max   = i1
@@ -4781,19 +4861,19 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4805,16 +4885,16 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -4829,19 +4909,19 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4853,13 +4933,13 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -4877,19 +4957,19 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4901,16 +4981,16 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -4925,10 +5005,10 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -4937,7 +5017,7 @@ type Tensor with
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4949,10 +5029,10 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -4973,19 +5053,19 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -4997,16 +5077,16 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -5021,19 +5101,19 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -5045,13 +5125,13 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -5069,7 +5149,7 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -5078,10 +5158,10 @@ type Tensor with
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -5093,7 +5173,7 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -5102,7 +5182,7 @@ type Tensor with
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -5117,7 +5197,7 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -5129,7 +5209,7 @@ type Tensor with
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -5141,7 +5221,7 @@ type Tensor with
         let i0max   = i0
         let i1given = if i1min.IsSome || i1max.IsSome then 1 else 0
         let i1min   = defaultArg i1min 0
-        let i1max   = defaultArg i1max (t.shape.[1] - 1)
+        let i1max   = defaultArg i1max (t.shape.[1].Value - 1)
         let i2given = 1
         let i2min   = i2
         let i2max   = i2
@@ -5168,16 +5248,16 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -5192,13 +5272,13 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -5216,16 +5296,16 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -5240,10 +5320,10 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -5264,16 +5344,16 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -5288,13 +5368,13 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -5312,7 +5392,7 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -5321,7 +5401,7 @@ type Tensor with
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -5336,7 +5416,7 @@ type Tensor with
         let i1max   = i1
         let i2given = if i2min.IsSome || i2max.IsSome then 1 else 0
         let i2min   = defaultArg i2min 0
-        let i2max   = defaultArg i2max (t.shape.[2] - 1)
+        let i2max   = defaultArg i2max (t.shape.[2].Value - 1)
         let i3given = 1
         let i3min   = i3
         let i3max   = i3
@@ -5363,13 +5443,13 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -5387,10 +5467,10 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -5411,13 +5491,13 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -5435,7 +5515,7 @@ type Tensor with
         let i2max   = i2
         let i3given = if i3min.IsSome || i3max.IsSome then 1 else 0
         let i3min   = defaultArg i3min 0
-        let i3max   = defaultArg i3max (t.shape.[3] - 1)
+        let i3max   = defaultArg i3max (t.shape.[3].Value - 1)
         let i4given = 1
         let i4min   = i4
         let i4max   = i4
@@ -5462,10 +5542,10 @@ type Tensor with
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]
@@ -5486,7 +5566,7 @@ type Tensor with
         let i3max   = i3
         let i4given = if i4min.IsSome || i4max.IsSome then 1 else 0
         let i4min   = defaultArg i4min 0
-        let i4max   = defaultArg i4max (t.shape.[4] - 1)
+        let i4max   = defaultArg i4max (t.shape.[4].Value - 1)
         let i5given = 1
         let i5min   = i5
         let i5max   = i5
@@ -5513,7 +5593,7 @@ type Tensor with
         let i4max   = i4
         let i5given = if i5min.IsSome || i5max.IsSome then 1 else 0
         let i5min   = defaultArg i5min 0
-        let i5max   = defaultArg i5max (t.shape.[5] - 1)
+        let i5max   = defaultArg i5max (t.shape.[5].Value - 1)
         let bounds = array2D [[i0min; i0max; i0given]; [i1min; i1max; i1given]; [i2min; i2max; i2given]; [i3min; i3max; i3given]; [i4min; i4max; i4given]; [i5min; i5max; i5given]]
         t.GetSlice(bounds)
     [<ExcludeFromCodeCoverage>]

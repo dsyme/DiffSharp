@@ -113,7 +113,7 @@ type RawTensor() =
     abstract member Dim : int
 
     /// Gets the number of logical elements in the tensor
-    abstract member Nelement : int
+    abstract member Nelement : Dim
 
     /// Gets the element storage type for the tensor
     abstract member Dtype : Dtype
@@ -249,7 +249,7 @@ type RawTensor() =
         let statics = BackendStatics.Get(?backend=backend)
         let device = defaultArg device Device.Default
 
-        statics.CreateFromFlatArray(data, shape, dtype2, device)
+        statics.CreateFromFlatArray(data, Shape.constant shape, dtype2, device)
 
     /// Gets a tensor filled with values drawn from the given .NET object for the
     /// given configuration settings, defaulting to the configuration settings of the object tensor.
@@ -315,7 +315,7 @@ type RawTensor() =
     abstract member CatTs: tensors: RawTensor[] * dim: int -> RawTensor
 
     /// Split the given tensors along the given dimensions
-    abstract member SplitT: sizes: int[] * dim: int -> RawTensor[]
+    abstract member SplitT: sizes: Dim[] * dim: int -> RawTensor[]
 
     /// Get a textual representation of the tensors
     abstract member GetString: unit -> string
@@ -326,7 +326,7 @@ type RawTensor() =
     ///  The indexes are an Nx3 array.  The first row is the start bounds, the second row is
     ///  the end bounds, the third is 1/0 indicating dimension removal.
     /// </param>
-    abstract member GetSlice: fullBounds: int[,] -> RawTensor
+    abstract member GetSlice: fullBounds: Dim[,] -> RawTensor
 
     /// Get a .NET object for all the values in the tensor
     abstract member ToValues: unit -> obj
@@ -397,7 +397,7 @@ type RawTensor() =
     abstract member AddT2T1: RawTensor -> RawTensor
 
     /// Adds a slice of <c>t2</c> at the given location to the tensor
-    abstract member AddTTSlice: location: int[] * t2: RawTensor -> RawTensor
+    abstract member AddTTSlice: location: Dim[] * t2: RawTensor -> RawTensor
 
     /// Returns the element-wise subtraction of two tensors
     abstract member SubTT: t2: RawTensor -> RawTensor
@@ -452,13 +452,13 @@ type RawTensor() =
     abstract member MaxPool3D: kernelSize: int[] * strides: int[] * padding: int[] -> RawTensor * RawTensor
 
     /// Returns the 1D maxunpool of a tensor using the given indices for locations of maximums
-    abstract member MaxUnpool1D: indices: RawTensor * outputSize: int[] -> RawTensor
+    abstract member MaxUnpool1D: indices: RawTensor * outputSize: Dim[] -> RawTensor
 
     /// Returns the 2D maxunpool of a tensor using the given indices for locations of maximums
-    abstract member MaxUnpool2D: indices: RawTensor * outputSize: int[] -> RawTensor
+    abstract member MaxUnpool2D: indices: RawTensor * outputSize: Dim[] -> RawTensor
 
     /// Returns the 3D maxunpool of a tensor using the given indices for locations of maximums
-    abstract member MaxUnpool3D: indices: RawTensor * outputSize: int[] -> RawTensor
+    abstract member MaxUnpool3D: indices: RawTensor * outputSize: Dim[] -> RawTensor
 
     /// Returns the 1D convolution of the tensor
     abstract member Conv1D: kernel: RawTensor * stride: int * padding: int -> RawTensor
@@ -576,6 +576,11 @@ type RawTensor() =
         | _ -> t.NeqTT(t)
 
     default t.GetString() =
+        let sb = System.Text.StringBuilder()
+        if t.Backend = Backend.Symbolic then 
+            Printf.bprintf sb "tensor [dtype=%A,device=%A,shape=%A]" t.Dtype t.Device t.Shape
+            sb.ToString()
+        else
         // sprintf "RawTensor(Value=%A, Shape=%A, Dim=%A, Length=%A)" t.Value t.Shape t.Dim t.Length
         let printVal (x:obj) = 
            match x with 
@@ -592,12 +597,11 @@ type RawTensor() =
         match t.Dim with
         | 0 -> printVal (t.ToScalar())
         | _ ->
-            let sb = System.Text.StringBuilder()
             let rec print (shape:Shape) externalCoords = 
                 if shape.Length = 1 then
                     sb.Append("[") |> ignore
                     let mutable prefix = ""
-                    for i=0 to shape.[0]-1 do
+                    for i=0 to shape.[0].Value-1 do
                         let globalCoords = Array.append externalCoords [|i|]
                         sb.Append(prefix) |> ignore
                         sb.Append(printVal (t.GetItem(globalCoords))) |> ignore
@@ -607,7 +611,7 @@ type RawTensor() =
                     sb.Append("[") |> ignore
                     let mutable prefix = ""
                     let prefix2 = sprintf ", %s%s" (String.replicate (max 1 (shape.Length-1)) "\n") (String.replicate (externalCoords.Length+1) " ")
-                    for i=0 to shape.[0]-1 do
+                    for i=0 to shape.[0].Value-1 do
                         sb.Append(prefix) |> ignore
                         print shape.[1..] (Array.append externalCoords [|i|])
                         prefix <- prefix2

@@ -24,12 +24,12 @@ type SymbolicTensor(shape: SymbolicShape, dtype: Dtype, device: Device) =
         | Bool -> box false
         | Sym _ -> box 0.0
 
-    member t.MakeLike(?shape: int[], ?device: Device, ?dtype) =
+    member t.MakeLike(?shape: Shape, ?device: Device, ?dtype) =
         SymbolicTensor(defaultArg shape t.Shape, defaultArg dtype t.Dtype, defaultArg device t.Device) :> RawTensor
 
     override _.Shape = shape
     override _.Dim = shape.Length
-    override _.Nelement = shapeLength shape
+    override _.Nelement = Shape.nelements shape
     override _.Dtype = dtype
     override _.Device = device
     override _.DeviceType = device.DeviceType
@@ -40,7 +40,7 @@ type SymbolicTensor(shape: SymbolicShape, dtype: Dtype, device: Device) =
         printfn "GetItem not available for symbolic"
         sample
 
-    override t.GetSlice(fullBounds:int[,]) =
+    override t.GetSlice(fullBounds:Dim[,]) =
         let shape = Shape.checkCanGetSlice t.Shape fullBounds
         t.MakeLike(shape)
 
@@ -55,18 +55,19 @@ type SymbolicTensor(shape: SymbolicShape, dtype: Dtype, device: Device) =
         match t.Dim with
         | 0 -> box sample
         | _ -> 
+            let dims = t.Shape.Dims |> Array.map (fun d -> d.ValueOrOne)
             match dtype with 
-            | Float32 -> arrayND t.Shape (fun _ -> 0.0f)
-            | Float64 -> arrayND t.Shape (fun _ -> 0.0)
-            | Int8 -> arrayND t.Shape (fun _ -> 0y)
-            | Byte -> arrayND t.Shape (fun _ -> 0uy)
-            | Int16 -> arrayND t.Shape (fun _ -> 0s)
-            | Int32 -> arrayND t.Shape (fun _ -> 0)
-            | Int64 -> arrayND t.Shape (fun _ -> 0L)
-            | Bool -> arrayND t.Shape (fun _ -> false)
+            | Float32 -> arrayND dims (fun _ -> 0.0f)
+            | Float64 -> arrayND dims (fun _ -> 0.0)
+            | Int8 -> arrayND dims (fun _ -> 0y)
+            | Byte -> arrayND dims (fun _ -> 0uy)
+            | Int16 -> arrayND dims (fun _ -> 0s)
+            | Int32 -> arrayND dims (fun _ -> 0)
+            | Int64 -> arrayND dims (fun _ -> 0L)
+            | Bool -> arrayND dims (fun _ -> false)
             | Sym _ -> 
                 printfn "ToValues not available for symbolic dtype"
-                arrayND t.Shape (fun _ -> 0)
+                arrayND dims (fun _ -> 0)
             
 
     override _.StackTs(tensors, dim) =
@@ -77,7 +78,7 @@ type SymbolicTensor(shape: SymbolicShape, dtype: Dtype, device: Device) =
     override t.UnstackT(dim) =
         let shape = t.Shape
         let _, _, unstackedShape = Shape.checkCanUnstack shape dim
-        let n = shape.[dim]
+        let n = shape.[dim].Value // the value must be known to do an unstack
         Array.init n (fun _ -> t.MakeLike(unstackedShape))
 
     override t.CatTs(tensors, dim) =
@@ -92,14 +93,14 @@ type SymbolicTensor(shape: SymbolicShape, dtype: Dtype, device: Device) =
 
     override t.TransposeT(dim0, dim1) =
         Shape.checkCanTranspose t.Shape dim0 dim1
-        let shape = Array.copy t.Shape
+        let shape = Array.copy t.Shape.Dims
         shape.[dim0] <- t.Shape.[dim1]
         shape.[dim1] <- t.Shape.[dim0]
-        t.ZerosLike(shape)
+        t.ZerosLike(Shape shape)
 
     override t.TransposeT2() =
         Shape.checkCanTranspose2d t.Dim
-        t.MakeLike([| t.Shape.[1]; t.Shape.[0]|])
+        t.MakeLike(Shape [| t.Shape.[1]; t.Shape.[0]|])
 
     override t.SqueezeT(dim) =
         t.MakeLike(Shape.squeeze dim t.Shape)
@@ -117,13 +118,13 @@ type SymbolicTensor(shape: SymbolicShape, dtype: Dtype, device: Device) =
         t.MakeLike(Shape.dilated t.Shape dilations) 
 
     override t.UndilateT(dilations:int[]) =
-        t.MakeLike(Shape.undilatedShape t.Shape dilations) 
+        t.MakeLike(Shape.undilatedShape t.Shape dilations)
 
     override t.GatherT(dim:int, indices) =
         Shape.checkCanGather t.Shape dim indices.Shape indices.Dtype
         t.MakeLike(indices.Shape) 
 
-    override t.ViewT(shape:int[]) =
+    override t.ViewT(shape:Shape) =
         Shape.checkCanView t.Shape shape
         t.MakeLike(shape)
 
@@ -146,7 +147,7 @@ type SymbolicTensor(shape: SymbolicShape, dtype: Dtype, device: Device) =
     override t1.AddTT(_t2) = t1.MakeLike()
     override t1.AddTT0(_t2) = t1.MakeLike()
     override t1.AddT2T1(_t2) = t1.MakeLike()
-    override t1.AddTTSlice(_location:int[], _t2) = t1.MakeLike()
+    override t1.AddTTSlice(_location:Dim[], _t2) = t1.MakeLike()
     override t1.SubTT(_t2) = t1.MakeLike()
     override t1.SubT0T(t2) = t2
     override t1.SubTT0(_t2) = t1.MakeLike()
@@ -163,7 +164,7 @@ type SymbolicTensor(shape: SymbolicShape, dtype: Dtype, device: Device) =
         Shape.checkCanMatmul t1.Shape t2.Shape
         let t1rows, _t1cols = t1.Shape.[0], t1.Shape.[1]
         let _t2rows, t2cols = t2.Shape.[0], t2.Shape.[1]
-        t1.MakeLike([| t1rows; t2cols |])
+        t1.MakeLike(Shape [| t1rows; t2cols |])
 
     override t1.MaxPool1D(kernelSize, stride, padding) = 
         let _, _, _, _, outputShape = Shape.checkCanMaxpool1d t1.Dtype t1.Shape kernelSize stride padding
@@ -207,7 +208,7 @@ type SymbolicTensor(shape: SymbolicShape, dtype: Dtype, device: Device) =
         match resultType with 
         | None -> t.MakeLike(Shape.scalar)
         | Some dtype -> t.MakeLike(Shape.scalar, dtype=dtype)
-    override t.SumT2Dim0() = t.MakeLike([|t.Shape.[1]|])
+    override t.SumT2Dim0() = t.MakeLike(Shape [|t.Shape.[1]|])
     override t.SignT() = t :> _ 
     override t.FloorT() = t :> _ 
     override t.CeilT() = t :> _ 
@@ -239,11 +240,11 @@ type SymbolicBackendStatics() =
     override _.Seed(seed) = Random.Seed(seed)
     override _.Zero(dtype, device) = SymbolicTensor(Shape.scalar, dtype, device) :> _
     override _.One(dtype, device) = SymbolicTensor(Shape.scalar, dtype, device) :> _
-    override _.Zeros(shape:int[], dtype, device) = SymbolicTensor(shape, dtype, device) :> _
-    override _.Empty(shape:int[], dtype, device) = SymbolicTensor(shape, dtype, device) :> _
-    override _.Ones(shape:int[], dtype, device) = SymbolicTensor(shape, dtype, device) :> _
-    override _.Full(shape:int[], _value:obj, dtype, device) = SymbolicTensor(shape, dtype, device) :> _
-    override _.Random(shape:int[], dtype, device) = SymbolicTensor(shape, dtype, device) :> _
-    override _.RandomNormal(shape:int[], dtype, device) = SymbolicTensor(shape, dtype, device) :> _
-    override _.RandomInt(shape:int[], _low:int, _high:int, dtype, device) = SymbolicTensor(shape, dtype, device) :> _
+    override _.Zeros(shape:Shape, dtype, device) = SymbolicTensor(shape, dtype, device) :> _
+    override _.Empty(shape:Shape, dtype, device) = SymbolicTensor(shape, dtype, device) :> _
+    override _.Ones(shape:Shape, dtype, device) = SymbolicTensor(shape, dtype, device) :> _
+    override _.Full(shape:Shape, _value:obj, dtype, device) = SymbolicTensor(shape, dtype, device) :> _
+    override _.Random(shape:Shape, dtype, device) = SymbolicTensor(shape, dtype, device) :> _
+    override _.RandomNormal(shape:Shape, dtype, device) = SymbolicTensor(shape, dtype, device) :> _
+    override _.RandomInt(shape:Shape, _low:int, _high:int, dtype, device) = SymbolicTensor(shape, dtype, device) :> _
     override _.CreateFromFlatArray(_values:Array, shape, dtype, device) = SymbolicTensor(shape, dtype, device) :> _

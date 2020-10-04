@@ -2,24 +2,104 @@
 
 open DiffSharp.Util
 
-/// Represents the shape of a tensor.
-type Shape = int[]
+/// Represents an integer that may be symbolic, e.g. the size of one dimension of a tensor
+[<Struct; CustomEquality; CustomComparison>]
+type Dim(n: int) = 
 
+    /// Return the value, exception if symbolic
+    member x.Value = n
+
+    /// Return '1' if this is symbolic
+    member _.ValueOrOne = n
+
+    static member (+) (a:Dim,b:Dim) : Dim = Dim (a.Value + b.Value)
+
+    static member (+) (a:Dim,b:int) : Dim = Dim (a.Value + b)
+
+    static member (-) (a:Dim,b:Dim) : Dim = Dim (a.Value - b.Value)
+
+    static member (-) (a:Dim,b:int) : Dim = Dim (a.Value - b)
+
+    static member (%) (a:Dim,b:Dim) : Dim = Dim (a.Value % b.Value)
+
+    static member (*) (a:Dim,b:Dim) : Dim = Dim (a.Value * b.Value)
+
+    static member (*) (a:int,b:Dim) : Dim = Dim (a * b.Value)
+
+    static member (*) (a:Dim,b:int) : Dim = Dim (a.Value * b)
+
+    static member (/) (a:Dim,b:Dim) : Dim = Dim (a.Value / b.Value)
+
+    static member (/) (a:Dim,b:int) : Dim = Dim (a.Value / b)
+
+    static member Zero = Dim 0
+
+    static member Abs(dim: Dim) = Dim (abs dim.Value)
+
+    member _.IsRequest = (n = -1)
+
+    member _.IsInvalid = (n < -1)
+
+    override x.GetHashCode() = n
+
+    override x.Equals(y:obj) =
+          match y with 
+          | :? Dim as y -> x.Value = y.Value
+          | _ -> failwith "wrong type"
+
+    interface System.IComparable with 
+       member x.CompareTo(y:obj) = 
+          match y with 
+          | :? Dim as y -> compare x.Value y.Value
+          | _ -> failwith "wrong type"
+
+/// Represents the shape of a tensor.  Each dimension may be symbolic.
+[<Struct; NoComparison>]
+type Shape(arr: Dim[]) = 
+    member _.Length = arr.Length
+    member _.Dims = arr
+    member _.Values = arr |> Array.map (fun dim -> dim.Value)
+    member _.Item with get i = arr.[i]
+    member _.GetSlice(x:int option,y:int option) = Shape (FSharp.Core.Operators.OperatorIntrinsics.GetArraySlice arr x y)
+
+/// Contains functions and values related to shape dimensions
+module Dim =
+
+    /// TBD
+    let eval (dim: Dim) = dim.Value
+    
+/// Contains functions and values related to arrays of shape dimensions
+module Dims =
+    /// TBD
+    let eval (dims: Dim[]) = Array.map Dim.eval dims
+    
 /// Contains functions and values related to tensor shapes.
 module rec Shape =
 
+    /// Gets the dimensions of the shape
+    let dims (shape: Shape) = shape.Dims
+
+    /// TBD
+    let ofSeq (dims: seq<Dim>) = Shape (Array.ofSeq dims)
+
+    /// TBD
+    let constant (dims: seq<int>) = Shape (Array.ofSeq dims |> Array.map Dim)
+
+    /// TBD
+    let eval (shape: Shape) = shape.Values
+
     /// Gets the total number of elements in the shape.
-    let length (shape: Shape) =
-        if shape.Length = 0 then 1
-        else Array.reduce (*) shape
+    let nelements (shape: Shape) =
+        if shape.Length = 0 then Dim 1
+        else Array.reduce (*) shape.Dims
 
     /// The shape for a scalar value.
-    let scalar : Shape = [| |]
+    let scalar : Shape = Shape [| |]
 
     /// Indicates if one shape contains another.
     let contains (bigShape:Shape) (smallShape: Shape) =
         if bigShape.Length <> smallShape.Length then failwithf "Expecting bigShape (%A) and smallShape (%A) to have the same number of dimensions" bigShape.Length smallShape.Length
-        Array.map2 (<=) smallShape bigShape |> Array.forall id
+        Array.map2 (<=) smallShape.Dims bigShape.Dims |> Array.forall id
 
     /// Checks if the given shapes are appropriate for a stack operation and returns information related to the resulting shape.
     let checkCanStack (shapes:Shape[]) (dim: int) =
@@ -31,24 +111,25 @@ module rec Shape =
         if dim < 0 || dim > n then invalidArg "dim" "invalid dimension"
         let shape1 = shape.[0..dim-1]
         let shape2 = shape.[dim..]
-        let outputShape = [| yield! shape1; yield n; yield! shape2 |]
+        let outputShape = Shape [| yield! shape1.Dims; yield Dim n; yield! shape2.Dims |]
         n, shape1, shape2, outputShape
 
     /// Checks if the given shapes are appropriate for a GetSlice operation and returns information related to the resulting shape.
-    let checkCanGetSlice (shape: Shape) (fullBounds: int[,]) =
+    let checkCanGetSlice (shape: Shape) (fullBounds: Dim[,]) =
         if Array2D.length1 fullBounds <> shape.Length then failwithf "Expecting %i-by-3 fullBounds" shape.Length
         let outputShape =
             [|for i=0 to (fullBounds.GetLength(0) - 1) do
                 let len = fullBounds.[i,1] - fullBounds.[i,0] + 1
-                if fullBounds.[i, 2] = 1 then
-                    if len > 1 then yield len // if len=1 then squeeze this dimension
+                if fullBounds.[i, 2].Value = 1 then
+                    if len <> Dim 1 then yield len // if len=1 then squeeze this dimension
                 else
                     yield len|]
-        outputShape
+        Shape outputShape
 
     /// Computes the shape that results from a dilation operation.
     let dilated (shape: Shape) (dilations: int[]) =
-        Array.map2 (fun n d -> n + (n - 1) * (d - 1)) shape dilations
+        Array.map2 (fun n d -> n + (n - 1) * (Dim d - 1)) shape.Dims dilations
+        |> Shape
 
     /// Checks if the given shapes are appropriate for a concatenation operation and returns information related to the resulting shape.
     let checkCanCat (shapes: Shape[]) (dim: int) =
@@ -61,16 +142,16 @@ module rec Shape =
         if shapes |> Array.exists (fun shapeOther -> shapeOther.[0..dim-1] <> shape1 || shapeOther.[dim+1..] <> shape3) then
             invalidArg "tensors" "Expecting Tensors with similar shapes"
         let m2 = shapes |> Array.sumBy (fun shape -> shape.[dim])
-        let outputShape = [| yield! shape1; yield m2; yield! shape3 |]
+        let outputShape = Shape [| yield! shape1.Dims; yield m2; yield! shape3.Dims |]
         n, shape1, m2, shape3, outputShape
 
     /// Checks if the given shapes are appropriate for a split operation and returns information related to the resulting shape.
-    let checkCanSplit (shape: Shape) (sizes: int[]) (dim: int) =
+    let checkCanSplit (shape: Shape) (sizes: Dim[]) (dim: int) =
         if dim < 0 || dim >= shape.Length then invalidArg "dim" "invalid dimension"
         if Array.sum sizes <> shape.[dim] then invalidArg "sizes" "the sum of sizes must equal the relevant dimension"
         let shape1 = shape.[0..dim-1]
         let shape2 = shape.[dim+1..]
-        let outputShapes = sizes |> Array.map (fun sz -> [| yield! shape1; yield sz; yield! shape2 |])
+        let outputShapes = sizes |> Array.map (fun sz -> Shape [| yield! shape1.Dims; yield sz; yield! shape2.Dims |])
         outputShapes
 
     /// Checks if the given shapes are appropriate for an unstack operation and returns information related to the resulting shape.
@@ -79,14 +160,14 @@ module rec Shape =
         if dim < 0 || dim >= shape.Length then invalidArg "dim" "invalid dimension"
         let shape1 = shape.[0..dim-1]
         let shape2 = shape.[dim+1..]
-        let outputShape = Array.append shape1 shape2
+        let outputShape = Shape (Array.append shape1.Dims shape2.Dims)
         shape1, shape2, outputShape
 
     /// Checks if the given shapes are appropriate for a transpose operation and returns information related to the resulting shape.
     let computeTranspose2d (shape: Shape) =
         let nrows = shape.[0]
         let ncols = shape.[1]
-        let outputShape = [| ncols; nrows |]
+        let outputShape = Shape [| ncols; nrows |]
         outputShape
 
     /// Checks if the two device types are equal.
@@ -121,8 +202,9 @@ module rec Shape =
         let inputLengthAfterPadding = inputLength + 2*padding
         if shape2.[1] <> inputChannels then failwithf "Input and filters have different number of channels: %A, %A" inputChannels filtersChannels
         if kernelLength > inputLengthAfterPadding then failwithf "Expecting kernelLength (%A) <= inputLengthAfterPadding (%A)" kernelLength inputLengthAfterPadding
-        let outputSize = int (floor (float (inputLengthAfterPadding - kernelLength)/(float stride))) + 1
-        let outputShape = [|batchSize; outputChannels; outputSize|]
+        // TODO symbolic formula for convolution size
+        let outputSize = Dim (int (floor (float (inputLengthAfterPadding - kernelLength).Value/(float stride))) + 1)
+        let outputShape = Shape [|batchSize; outputChannels; outputSize|]
         batchSize, inputChannels, kernelLength, outputChannels, outputSize, outputShape
 
     /// Checks if the given shapes are appropriate for a convolution operation and returns information related to the resulting shape.
@@ -150,9 +232,10 @@ module rec Shape =
         if filtersChannels <> inputChannels then failwithf "Input and filters have different number of channels: %A, %A" inputChannels filtersChannels
         if kernelHeight > inputHeightAfterPadding then failwithf "Expecting kernelHeight (%A) <= inputHeightAfterPadding (%A)" kernelHeight inputHeightAfterPadding
         if kernelWidth > inputWidthAfterPadding then failwithf "Expecting kernelWidth (%A) <= inputWidthAfterPadding (%A)" kernelWidth inputWidthAfterPadding
-        let outputHeight = int (floor (float (inputHeightAfterPadding - kernelHeight)/(float strides.[0]))) + 1
-        let outputWidth = int (floor (float (inputWidthAfterPadding - kernelWidth)/(float strides.[1]))) + 1
-        let outputShape = [|batchSize; outputChannels; outputHeight; outputWidth|]
+        // TODO symbolic formula for convolution size
+        let outputHeight = Dim (int (floor (float (inputHeightAfterPadding - kernelHeight).Value/(float strides.[0]))) + 1)
+        let outputWidth = Dim (int (floor (float (inputWidthAfterPadding - kernelWidth).Value/(float strides.[1]))) + 1)
+        let outputShape = Shape [|batchSize; outputChannels; outputHeight; outputWidth|]
         batchSize, inputChannels, (kernelHeight, kernelWidth), (outputChannels, outputHeight, outputWidth), outputShape
 
     /// Checks if the given shapes are appropriate for a convolution operation and returns information related to the resulting shape.
@@ -184,10 +267,11 @@ module rec Shape =
         if kernelDepth > inputDepthAfterPadding then failwithf "Expecting kernelDepth (%A) <= inputDepthAfterPadding (%A)" kernelDepth inputDepthAfterPadding
         if kernelHeight > inputHeightAfterPadding then failwithf "Expecting kernelHeight (%A) <= inputHeightAfterPadding (%A)" kernelHeight inputHeightAfterPadding
         if kernelWidth > inputWidthAfterPadding then failwithf "Expecting kernelWidth (%A) <= inputWidthAfterPadding (%A)" kernelWidth inputWidthAfterPadding
-        let outputDepth = int (floor (float (inputDepthAfterPadding - kernelDepth)/(float strides.[0]))) + 1
-        let outputHeight = int (floor (float (inputHeightAfterPadding - kernelHeight)/(float strides.[1]))) + 1
-        let outputWidth = int (floor (float (inputWidthAfterPadding - kernelWidth)/(float strides.[2]))) + 1
-        let outputShape = [|batchSize; outputChannels; outputDepth; outputHeight; outputWidth|]
+        // TODO symbolic formula for convolution size
+        let outputDepth = Dim (int (floor (float (inputDepthAfterPadding - kernelDepth).Value/(float strides.[0]))) + 1)
+        let outputHeight = Dim (int (floor (float (inputHeightAfterPadding - kernelHeight).Value/(float strides.[1]))) + 1)
+        let outputWidth = Dim (int (floor (float (inputWidthAfterPadding - kernelWidth).Value/(float strides.[2]))) + 1)
+        let outputShape = Shape [|batchSize; outputChannels; outputDepth; outputHeight; outputWidth|]
         batchSize, inputChannels, (kernelDepth, kernelHeight, kernelWidth), (outputChannels, outputDepth, outputHeight, outputWidth), outputShape
 
     /// Checks if the given shapes are appropriate for a transposed convolution operation and returns information related to the resulting shape.
@@ -206,12 +290,12 @@ module rec Shape =
         let outputChannels = shape2.[1]
         let filtersChannels = shape2.[0]
         let kernelLength = shape2.[2]
-        let kernelShape = [|kernelLength|]
+        let kernelShape = Shape [|kernelLength|]
         let kernelShapeAfterDilation = dilated kernelShape [|dilation|]
         let kernelLength = kernelShapeAfterDilation.[0]
         if filtersChannels <> inputChannels then failwithf "Input and filters have different number of channels: %A, %A" inputChannels filtersChannels
         let outputSize = stride * (inputLength - 1) + kernelLength - 2 * padding + outputPadding
-        let outputShape = [|batchSize; outputChannels; outputSize|]
+        let outputShape = Shape [|batchSize; outputChannels; outputSize|]
         batchSize, inputChannels, kernelLength, outputChannels, outputSize, outputShape
 
     /// Checks if the given shapes are appropriate for a transposed convolution operation and returns information related to the resulting shape.
@@ -236,14 +320,14 @@ module rec Shape =
         let filtersChannels = shape2.[0]
         let kernelHeight = shape2.[2]
         let kernelWidth = shape2.[3]
-        let kernelShape = [|kernelHeight; kernelWidth|]
+        let kernelShape = Shape [|kernelHeight; kernelWidth|]
         let kernelShapeAfterDilation = dilated kernelShape dilations
         let kernelHeight = kernelShapeAfterDilation.[0]
         let kernelWidth = kernelShapeAfterDilation.[1]
         if filtersChannels <> inputChannels then failwithf "Input and filters have different number of channels: %A, %A" inputChannels filtersChannels
         let outputHeight = strides.[0] * (inputHeight - 1) + kernelHeight - 2 * paddings.[0] + outputPaddings.[0]
         let outputWidth = strides.[1] * (inputWidth - 1) + kernelWidth - 2 * paddings.[1] + outputPaddings.[1]
-        let outputShape = [|batchSize; outputChannels; outputHeight; outputWidth|]
+        let outputShape = Shape [|batchSize; outputChannels; outputHeight; outputWidth|]
         batchSize, inputChannels, (kernelHeight, kernelWidth), (outputChannels, outputHeight, outputWidth), outputShape
 
     /// Checks if the given shapes are appropriate for a transposed convolution operation and returns information related to the resulting shape.
@@ -270,7 +354,7 @@ module rec Shape =
         let kernelDepth = shape2.[2]
         let kernelHeight = shape2.[3]
         let kernelWidth = shape2.[4]
-        let kernelShape = [|kernelDepth; kernelHeight; kernelWidth|]
+        let kernelShape = Shape [|kernelDepth; kernelHeight; kernelWidth|]
         let kernelShapeAfterDilation = dilated kernelShape dilations
         let kernelDepth = kernelShapeAfterDilation.[0]
         let kernelHeight = kernelShapeAfterDilation.[1]
@@ -279,7 +363,7 @@ module rec Shape =
         let outputDepth = strides.[0] * (inputDepth - 1) + kernelDepth - 2 * paddings.[0] + outputPaddings.[0]
         let outputHeight = strides.[1] * (inputHeight - 1) + kernelHeight - 2 * paddings.[1] + outputPaddings.[1]
         let outputWidth = strides.[2] * (inputWidth - 1) + kernelWidth - 2 * paddings.[2] + outputPaddings.[2]
-        let outputShape = [|batchSize; outputChannels; outputDepth; outputHeight; outputWidth|]
+        let outputShape = Shape [|batchSize; outputChannels; outputDepth; outputHeight; outputWidth|]
         batchSize, inputChannels, (kernelDepth, kernelHeight, kernelWidth), (outputChannels, outputDepth, outputHeight, outputWidth), outputShape
 
     /// Checks if the given shapes are appropriate for a maxpool operation and returns information related to the resulting shape.
@@ -296,9 +380,10 @@ module rec Shape =
         let channels = shape.[1]
         let inputSize = shape.[2]
         let inputLengthAfterPadding = inputSize + 2*padding
-        if kernelSize > inputLengthAfterPadding then failwithf "Expecting kernelSize (%A) <= inputLengthAfterPadding (%A)" kernelSize inputLengthAfterPadding
-        let outputSize = int (floor (float (inputSize + 2*padding - kernelSize)/(float stride))) + 1
-        let outputShape = [|batchSize; channels; outputSize|]
+        if Dim kernelSize > inputLengthAfterPadding then failwithf "Expecting kernelSize (%A) <= inputLengthAfterPadding (%A)" kernelSize inputLengthAfterPadding
+        // TODO symbolic formula for maxpool size
+        let outputSize = Dim (int (floor (float (inputLengthAfterPadding - kernelSize).Value/(float stride))) + 1)
+        let outputShape = Shape [|batchSize; channels; outputSize|]
         batchSize, channels, inputSize, outputSize, outputShape
 
     /// Checks if the given shapes are appropriate for a maxpool operation and returns information related to the resulting shape.
@@ -319,11 +404,11 @@ module rec Shape =
         let kernelWidth = kernelSize.[1]
         let inputHeightAfterPadding = inputHeight + 2*paddings.[0]
         let inputWidthAfterPadding = inputWidth + 2*paddings.[1]
-        if kernelSize.[0] > inputHeightAfterPadding then failwithf "Expecting kernelSize.[0] (%A) <= inputHeightAfterPadding (%A)" kernelSize.[0] inputHeightAfterPadding
-        if kernelSize.[1] > inputWidthAfterPadding then failwithf "Expecting kernelSize.[1] (%A) <= inputWidthAfterPadding (%A)" kernelSize.[1] inputWidthAfterPadding
-        let outputHeight = int (floor (float (inputHeight + 2*paddings.[0] - kernelHeight)/(float strides.[0]))) + 1
-        let outputWidth = int (floor (float (inputWidth + 2*paddings.[1] - kernelWidth)/(float strides.[1]))) + 1
-        let outputShape = [|batchSize; channels; outputHeight; outputWidth|]
+        if Dim kernelSize.[0] > inputHeightAfterPadding then failwithf "Expecting kernelSize.[0] (%A) <= inputHeightAfterPadding (%A)" kernelSize.[0] inputHeightAfterPadding
+        if Dim kernelSize.[1] > inputWidthAfterPadding then failwithf "Expecting kernelSize.[1] (%A) <= inputWidthAfterPadding (%A)" kernelSize.[1] inputWidthAfterPadding
+        let outputHeight = Dim (int (floor (float (inputHeightAfterPadding - kernelHeight).Value/(float strides.[0]))) + 1)
+        let outputWidth = Dim (int (floor (float (inputWidthAfterPadding - kernelWidth).Value/(float strides.[1]))) + 1)
+        let outputShape = Shape [|batchSize; channels; outputHeight; outputWidth|]
         (batchSize, channels, (inputHeight, inputWidth), (kernelHeight, kernelWidth), (outputHeight, outputWidth), outputShape)
 
     /// Checks if the given shapes are appropriate for a maxpool operation and returns information related to the resulting shape.
@@ -347,17 +432,17 @@ module rec Shape =
         let inputDepthAfterPadding = inputDepth + 2*paddings.[0]
         let inputHeightAfterPadding = inputHeight + 2*paddings.[1]
         let inputWidthAfterPadding = inputWidth + 2*paddings.[2]
-        if kernelSize.[0] > inputDepthAfterPadding then failwithf "Expecting kernelSize.[0] (%A) <= inputDepthAfterPadding (%A)" kernelSize.[0] inputDepthAfterPadding
-        if kernelSize.[1] > inputHeightAfterPadding then failwithf "Expecting kernelSize.[1] (%A) <= inputHeightAfterPadding (%A)" kernelSize.[1] inputHeightAfterPadding
-        if kernelSize.[2] > inputWidthAfterPadding then failwithf "Expecting kernelSize.[1] (%A) <= inputWidthAfterPadding (%A)" kernelSize.[1] inputWidthAfterPadding
-        let outputDepth = int (floor (float (inputDepth + 2*paddings.[0] - kernelDepth)/(float strides.[0]))) + 1
-        let outputHeight = int (floor (float (inputHeight + 2*paddings.[1] - kernelHeight)/(float strides.[1]))) + 1
-        let outputWidth = int (floor (float (inputWidth + 2*paddings.[2] - kernelWidth)/(float strides.[2]))) + 1
-        let outputShape = [|batchSize; channels; outputDepth; outputHeight; outputWidth|]
+        if Dim kernelSize.[0] > inputDepthAfterPadding then failwithf "Expecting kernelSize.[0] (%A) <= inputDepthAfterPadding (%A)" kernelSize.[0] inputDepthAfterPadding
+        if Dim kernelSize.[1] > inputHeightAfterPadding then failwithf "Expecting kernelSize.[1] (%A) <= inputHeightAfterPadding (%A)" kernelSize.[1] inputHeightAfterPadding
+        if Dim kernelSize.[2] > inputWidthAfterPadding then failwithf "Expecting kernelSize.[1] (%A) <= inputWidthAfterPadding (%A)" kernelSize.[1] inputWidthAfterPadding
+        let outputDepth = Dim (int (floor (float (inputDepthAfterPadding - kernelDepth).Value/(float strides.[0]))) + 1)
+        let outputHeight = Dim (int (floor (float (inputHeightAfterPadding - kernelHeight).Value/(float strides.[1]))) + 1)
+        let outputWidth = Dim (int (floor (float (inputWidthAfterPadding - kernelWidth).Value/(float strides.[2]))) + 1)
+        let outputShape = Shape [|batchSize; channels; outputDepth; outputHeight; outputWidth|]
         (batchSize, channels, (inputDepth, inputHeight, inputWidth), (kernelDepth, kernelHeight, kernelWidth), (outputDepth, outputHeight, outputWidth), outputShape)
 
     /// Checks if the given shapes are appropriate for a maxunpool operation and returns information related to the resulting shape.
-    let checkCanMaxunpool1d (dtype: Dtype) (shape: Shape) (indicesDtype: Dtype) (indicesShape: Shape) (outputSize: int[]) =
+    let checkCanMaxunpool1d (dtype: Dtype) (shape: Shape) (indicesDtype: Dtype) (indicesShape: Shape) (outputSize: Dim[]) =
         match dtype with
         | Dtype.Bool | Dtype.Integral -> opNotSupported "maxunpool2d" dtype
         | _ ->
@@ -367,11 +452,11 @@ module rec Shape =
         let channels = shape.[1]
         let inputSize = shape.[2]
         if outputSize.[0] <> indicesShape.[0] || outputSize.[1] <> indicesShape.[1] then failwithf "Expecting the first two elements of outputSize (%A) and indicesShape (%A) to be the same" outputSize indicesShape
-        let outputShape = [|batchSize; channels; outputSize.[2]|]
+        let outputShape = Shape [|batchSize; channels; outputSize.[2]|]
         batchSize, channels, inputSize, outputShape
 
     /// Checks if the given shapes are appropriate for a maxunpool operation and returns information related to the resulting shape.
-    let checkCanMaxunpool2d (dtype: Dtype) (shape: Shape) (indicesDtype: Dtype) (indicesShape: Shape) (outputSize: int[]) =
+    let checkCanMaxunpool2d (dtype: Dtype) (shape: Shape) (indicesDtype: Dtype) (indicesShape: Shape) (outputSize: Dim[]) =
         match dtype with
         | Dtype.Bool | Dtype.Integral -> opNotSupported "maxunpool2d" dtype
         | _ ->
@@ -382,11 +467,11 @@ module rec Shape =
         let inputHeight = shape.[2]
         let inputWidth = shape.[3]
         if outputSize.[0] <> indicesShape.[0] || outputSize.[1] <> indicesShape.[1] then failwithf "Expecting the first two elements of outputSize (%A) and indicesShape (%A) to be the same" outputSize indicesShape
-        let outputShape = [|batchSize; channels; outputSize.[2]; outputSize.[3]|]
+        let outputShape = Shape [|batchSize; channels; outputSize.[2]; outputSize.[3]|]
         batchSize, channels, (inputHeight, inputWidth), outputShape
 
     /// Checks if the given shapes are appropriate for a maxunpool operation and returns information related to the resulting shape.
-    let checkCanMaxunpool3d (dtype: Dtype) (shape: Shape) (indicesDtype: Dtype) (indicesShape: Shape) (outputSize: int[]) =
+    let checkCanMaxunpool3d (dtype: Dtype) (shape: Shape) (indicesDtype: Dtype) (indicesShape: Shape) (outputSize: Dim[]) =
         match dtype with
         | Dtype.Bool | Dtype.Integral -> opNotSupported "maxunpool2d" dtype
         | _ ->
@@ -398,15 +483,15 @@ module rec Shape =
         let inputHeight = shape.[3]
         let inputWidth = shape.[4]
         if outputSize.[0] <> indicesShape.[0] || outputSize.[1] <> indicesShape.[1] then failwithf "Expecting the first two elements of outputSize (%A) and indicesShape (%A) to be the same" outputSize indicesShape
-        let outputShape = [|batchSize; channels; outputSize.[2]; outputSize.[3]; outputSize.[4]|]
+        let outputShape = Shape [|batchSize; channels; outputSize.[2]; outputSize.[3]; outputSize.[4]|]
         batchSize, channels, (inputDepth, inputHeight, inputWidth), outputShape
 
     /// Indicates if one shape can expand into another through the addition of broadcast dimensions.
     let canExpand (oldShape: Shape) (newShape: Shape) =
         newShape.Length >= oldShape.Length &&
         let trim = newShape.Length - oldShape.Length
-        newShape.[..trim-1] |> Array.forall (fun m -> m >= 1)
-            && (oldShape,newShape.[trim..]) ||> Array.forall2 (fun n m -> n = 1 || n = m)
+        newShape.[..trim-1].Dims |> Array.forall (fun m -> m >= Dim 1)
+            && (oldShape.Dims,newShape.[trim..].Dims) ||> Array.forall2 (fun n m -> n = Dim 1 || n = m)
 
     /// Checks if one shape can expand into another through the addition of broadcast dimensions.
     let checkCanExpand (oldShape: Shape) (newShape: Shape) =
@@ -430,7 +515,7 @@ module rec Shape =
 
     /// Checks if the given shape is appropriate for a repeat operation.
     let checkCanRepeat (shape: Shape) (dim: int) =
-        if shape.[dim] <> 1 then failwithf "Expecting Tensor's shape (%A) at dim (%A) to be 1" shape dim
+        if shape.[dim] <> Dim 1 then failwithf "Expecting Tensor's shape (%A) at dim (%A) to be 1" shape dim
 
     /// Checks if the given shape is appropriate for a dilate operation.
     let checkCanDilate (dim: int) (dilations: int[]) =
@@ -441,21 +526,23 @@ module rec Shape =
     let checkCanGather (shape: Shape) (dim: int) (indicesShape: Shape) (indicesDtype:Dtype) =
         if shape.Length <> indicesShape.Length then failwithf "Expecting tensorShape (%A) and indicesShape (%A) to have the same number of dimensions" shape indicesShape
         if dim < 0 || dim > shape.Length-1 then failwithf "Expecting 0<= dim (%A) < tensorShape.Length (%A)" dim shape.Length
-        if indicesShape.[dim] < 1 then failwithf "Expecting indicesShape.[dim] (%A) >= 1" indicesShape.[dim]
+        if indicesShape.[dim] < Dim 1 then failwithf "Expecting indicesShape.[dim] (%A) >= 1" indicesShape.[dim]
         if indicesDtype <> Dtype.Int32 then failwithf "Expecting indices to have type %A" Dtype.Int32
 
     /// Checks if the given shape is appropriate for a view operation.
     let checkCanView (shape1: Shape) (shape2: Shape) =
-        if length shape1 <> length shape2 then failwithf "Cannot view Tensor of shape %A as shape %A" shape1 shape2
+        if nelements shape1 <> nelements shape2 then failwithf "Cannot view Tensor of shape %A as shape %A" shape1 shape2
 
     /// Checks if the given shape is appropriate for a flatten operation.
     let checkCanFlatten (shape: Shape) (startDim: int) (endDim: int) =
         if startDim < 0 || startDim >= shape.Length then failwithf "Expecting 0 <= startDim (%A) < %A" startDim shape.Length
         if endDim < 0 || endDim >= shape.Length then failwithf "Expecting 0 <= endDim (%A) < %A" endDim shape.Length
         if endDim <= startDim then failwithf "Expecting startDim (%A) < endDim (%A)" startDim endDim
+        let n = nelements shape.[startDim .. endDim] 
+        Shape [|  for i in 0..shape.Length-1 do if (i < startDim) || (i > endDim) then shape.[i] elif i = startDim then n |]
 
     /// Checks if the given shape is appropriate for an addSlice operation.
-    let checkCanAddSlice (shape1: Shape) (location: int[]) (shape2: Shape) =
+    let checkCanAddSlice (shape1: Shape) (location: Dim[]) (shape2: Shape) =
         if not (contains shape1 shape2) then failwithf "Expecting shape1 to contain shape2, received %A, %A" shape1 shape2
         if location.Length <> shape1.Length then failwithf "Expecting location of the same length as shape1, received %A, %A" (location.Length) shape1
 
@@ -491,11 +578,13 @@ module rec Shape =
     /// Computes the shape that results from a squeeze operation.
     let squeeze (dim: int) (shape: Shape) =
         if dim = -1 then
-            [|for s in shape do if s <> 1 then yield s|]
-        elif shape.[dim] = 1 then
+            [|for s in shape.Dims do if s <> Dim 1 then yield s|]
+            |> Shape
+        elif shape.[dim] = Dim 1 then
             [|for i=0 to shape.Length - 1 do
                 if i < dim then yield shape.[i]
                 elif i > dim then yield shape.[i]|]
+            |> Shape
         else
             shape
 
@@ -504,24 +593,19 @@ module rec Shape =
         if dim < 0 || dim > shape.Length then failwithf "Expecting dim in range [0, %A] but received %A" shape.Length dim
         [|for i=0 to shape.Length - 1 + 1 do
             if i < dim then yield shape.[i]
-            elif i = dim then yield 1
+            elif i = dim then yield Dim 1
             else yield shape.[i-1]|]
+        |> Shape
 
     /// Computes the shape that results from an unsqueezeAs operation.
     let unsqueezeAs (shape1: Shape) (shape2: Shape) =
         if shape1.Length > shape2.Length then failwithf "Expecting shape1.Length (%A) <= shape2.Length (%A)" shape1.Length shape2.Length
-        let ones = Array.create (shape2.Length - shape1.Length) 1
-        Array.append ones shape1
+        let ones = Array.create (shape2.Length - shape1.Length) (Dim 1)
+        Shape (Array.append ones shape1.Dims)
 
     /// Converts the given location to a three-element bounds array in the context of the given shape.
-    let locationToBounds (shape: Shape) (location: int[]) =
-        Array2D.init location.Length 3 (fun i j -> if j=0 then location.[i] elif j=1 then location.[i] + shape.[i] - 1 else 1)
-
-    /// Computes the shape that results from a flatten operation.
-    let flatten (startDim: int) (endDim: int) (shape: Shape) =
-        let shape = [|for i in 0..shape.Length-1 do if (i < startDim) || (i > endDim) then shape.[i] else -1|]
-        let mutable emitted = false
-        [|for s in shape do if s <> -1 then s elif not emitted then emitted <- true; -1|]
+    let locationToBounds (shape: Shape) (location: Dim[]) : Dim[,] =
+        Array2D.init location.Length 3 (fun i j -> if j=0 then location.[i] elif j=1 then location.[i] + shape.[i].Value - 1 else Dim 1)
 
     /// Finds the shape into which `shape1` and `shape2` can be expanded.
     let broadcast2 (shape1: Shape) (shape2: Shape) =
@@ -534,6 +618,7 @@ module rec Shape =
                 if i < mn then (if n1 > n2 then shape1.[i] else shape2.[i])
                 elif n1 > n2 then max shape1.[i] shape2.[i-mn]
                 else max shape1.[i-mn] shape2.[i])
+            |> Shape
         else failwithf "shapes %A and %A are not related by broadcasting - each dimension must either be extra, equal, expand from 1" shape1 shape2
 
     /// Finds the shape into which all the shapes can be expanded.
@@ -545,21 +630,23 @@ module rec Shape =
 
     /// Computes the shape that results from an undilation operation.
     let undilatedShape (shape: Shape) (dilations: int[]) =
-        Array.map2 (fun n d -> (n + d - 1) / d) shape dilations
+        Array.map2 (fun n d -> (n + d - 1) / d) shape.Dims dilations
+        |> Shape
 
     /// Completes the given shape with respect to a tensor with the given number of elements.
-    let complete (nelement: int) (shape: Shape) =
-        if (shape |> Array.filter (fun x -> x < -1) |> Array.length) > 0 then failwithf "Invalid shape %A" shape
-        let numUnspecified = shape |> Array.filter ((=) -1) |> Array.length
+    let complete (nelement: Dim) (shape: Shape) =
+        if (shape.Dims |> Array.exists (fun x -> x.IsInvalid)) then failwithf "Invalid shape %A" shape
+        let numUnspecified = shape.Dims |> Array.filter (fun x -> x.IsRequest) |> Array.length
         if numUnspecified > 1 then
             failwithf "Cannot complete shape %A, expecting at most one unspecified dimension (-1)" shape
         elif numUnspecified = 0 then
             shape
         else
-            let divisor = shape |> Array.filter ((<>) -1) |> length
-            if nelement % divisor <> 0 then failwithf "Cannot complete shape %A to have %A elements" shape nelement
+            let divisor = shape.Dims  |> Array.filter ((<>) (Dim -1)) |> Shape |> nelements
+            if nelement % divisor <> Dim 0 then failwithf "Cannot complete shape %A to have %A elements" shape nelement
             let missing = nelement / divisor
-            [|for d in shape do if d = -1 then yield missing else yield d|]
+            [|for d in shape.Dims do if d = Dim -1 then yield missing else yield d|]
+            |> Shape
 
     /// Completes the given shape dimension with respect to a concrete dimension.
     let completeDim (dims:int) (dim:int) =
@@ -570,7 +657,8 @@ module rec Shape =
     /// Completes the new shape for an expand operation based on the current shape of the tensor.
     let completeExpand (shape: Shape) (newShape: Shape) =
         let trim = newShape.Length - shape.Length
-        newShape |> Array.mapi (fun i x -> if i>=trim && x = -1 then shape.[i - trim] else x)
+        newShape.Dims |> Array.mapi (fun i x -> if i>=trim && x = Dim -1 then shape.[i - trim] else x)
+        |> Shape
 
     let inline create (xs: seq<int>) = Seq.toArrayQuick xs
 
@@ -578,7 +666,9 @@ module rec Shape =
 module ShapeAutoOpens =
 
     /// Gets the total number of elements in a shape.
-    let shapeLength (shape: Shape) = Shape.length shape
+    let shapeLength (shape: int[]) =
+        if shape.Length = 0 then 1
+        else Array.reduce (*) shape
 
     /// Converts the array of three-position bounds specifications to a location.
     let boundsToLocation (bounds: int[,]) =
@@ -589,7 +679,7 @@ module ShapeAutoOpens =
         [|for i=0 to bounds.GetLength(0) - 1 do yield bounds.[i, 1] - bounds.[i, 0] + 1|]
 
     /// Mirrors the coordinates in the given dimensions in the context of the given shape.
-    let mirrorCoordinates (coordinates: int[]) (shape: Shape) (mirrorDims: int[]) =
+    let mirrorCoordinates (coordinates: int[]) (shape: int[]) (mirrorDims: int[]) =
         if coordinates.Length <> shape.Length then failwithf "Expecting coordinates and shape of the same dimension, received %A, %A" coordinates.Length shape.Length
         let result = Array.copy coordinates
         for d=0 to coordinates.Length-1 do
@@ -601,14 +691,12 @@ module ShapeAutoOpens =
     let dilatedCoordinates (coordinates: int[]) (dilations: int[]) =
         Array.map2 (*) coordinates dilations
 
-    /// Checks if the given index is valid in the context of the given shape.
-    let checkValidIndex (shape: Shape) (index: int[]) =
+    let checkValidIndex (shape: int[]) (index: int[]) =
         if shape.Length <> index.Length then failwithf "Expecting shape (%A) and index (%A) to have the same length" shape index
         let valid = Array.forall2 (fun s i -> i < s) shape index
         if not valid then failwithf "index (%A) is not valid for shape (%A)" index shape
 
-    /// Converts the given index to a flat index in the context of the given shape.
-    let indexToFlatIndex (shape: Shape) (index: int[]) =
+    let indexToFlatIndex (shape: int[]) (index: int[]) =
         checkValidIndex shape index
         let mutable flatIndex = 0
         for i=0 to index.Length - 1 do
@@ -617,9 +705,9 @@ module ShapeAutoOpens =
         flatIndex
 
     /// Converts the given flat index to an index in the context of the given shape.
-    let flatIndexToIndex (shape: Shape) (flatIndex: int) =
+    let flatIndexToIndex (shape: int[]) (flatIndex: int) =
         let dim = shape.Length
-        let nelement = shapeLength shape
+        let nelement = Array.reduce (*) shape
         let index = Array.create dim 0
         let mutable mul = nelement
         let mutable fi = flatIndex
