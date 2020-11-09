@@ -16,6 +16,7 @@ type Parameter(value:Tensor) =
     //  if value.isMutable then failwith "the parameter tensor is already mutable and is already being used in another parameter"
     //  value.setMutable() |> ignore
 
+    member p.value with get() = reg.borrow() and set v = reg.set v
     member p.borrow() = reg.borrow()
     member p.getReg() = reg
     member p.set(v) = reg.set(v)
@@ -47,6 +48,9 @@ type ParameterDict() =
     member d.copyout(key) = d.values.[key].copyout()
     member d.borrow(key) = d.values.[key].borrow()
     member d.set(key, v) = d.values.[key].set(v)
+    member d.Item
+        with get key = d.values.[key].value
+        and set key v = d.values.[key].value <- v
 
     /// <summary>TBD</summary>
     member d.add(name, parameter) = d.values.Add(name, parameter)
@@ -59,6 +63,9 @@ type ParameterDict() =
 
     /// <summary>TBD</summary>
     member d.copy() = d.map(fun (t:Parameter) -> t.copyout())
+
+    member d.map(f:string*Tensor->string*Tensor) = d.map(fun (n, p:Parameter) -> let nn, tt = f(n, p.value) in nn, Parameter(tt))
+    member d.map(f:Tensor->Tensor) = d.map(fun (n,t) -> n, f t)
 
     /// <summary>TBD</summary>
     member d.map(f:string*Parameter->string*Parameter) =
