@@ -700,6 +700,56 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
         let resultt = tt.MaxUnpool3D(indices.TorchTensor, int64s outputSize, strides, padding)
         t1.MakeLike(resultt, shape=outputShape)
 
+    override t1.AvgPool1D(kernelSize, stride, padding) =
+        let _batchSize, _channels, _inputSize, _outputSize, outputShape = Shape.checkCanAvgpool1d dtype t1.Shape kernelSize stride padding
+        match dtype with 
+        | Dtype.Bool | Dtype.Integral -> opNotSupported "AvgPool1D" dtype
+        | _ ->
+        let resultt = tt.AvgPool1D(int64 kernelSize, stride=int64 stride, padding=int64 padding)
+        let result = t1.MakeLike(resultt, shape=outputShape)
+        result
+
+    override t1.AvgPool2D(kernelSize, stride, padding) = 
+        let _batchSize, _channels, _inputSize, _kernelSize, _outputSize, outputShape = Shape.checkCanAvgpool2d dtype t1.Shape kernelSize stride padding
+        match dtype with 
+        | Dtype.Bool | Dtype.Integral -> opNotSupported "AvgPool2D" dtype
+        | _ ->
+        let resultt = tt.AvgPool2D(int64s kernelSize, strides=int64s stride, paddings=int64s padding)
+        let result = t1.MakeLike(resultt, shape=outputShape)
+        result
+
+    override t1.AvgPool3D(kernelSize, stride, padding) =
+        let _batchSize, _channels, _inputSize, _kernelSize, _outputSize, outputShape = Shape.checkCanAvgpool3d dtype t1.Shape kernelSize stride padding
+        match dtype with 
+        | Dtype.Bool | Dtype.Integral -> opNotSupported "AvgPool3D" dtype
+        | _ ->
+        let resultt = tt.AvgPool3D(int64s kernelSize, strides=int64s stride, paddings=int64s padding)
+        let result = t1.MakeLike(resultt, shape=outputShape)
+        result
+
+    override t1.AvgPoolReverse1D(originalInput, kernelSize, stride, padding) =
+        let t1X = t1.UnsqueezeT(2)
+        let originalInputX = originalInput.UnsqueezeT(2)
+        let resulttX = t1X.AvgPoolReverse2D(originalInputX, [| 1; kernelSize |], [| 1; stride |], [| 0; padding |])
+        let resultt = resulttX.SqueezeT(2)
+        resultt
+
+    override t1.AvgPoolReverse2D(originalInput, kernelSize, stride, padding) = 
+        match dtype with 
+        | Dtype.Bool | Dtype.Integral -> opNotSupported "AvgPoolReverse2D" dtype
+        | _ ->
+        let resultt = tt.AvgPool2DBackward(originalInput.TorchTensor, int64s kernelSize, strides=int64s stride, paddings=int64s padding)
+        let result = t1.MakeLike(resultt, shape=originalInput.Shape)
+        result
+
+    override t1.AvgPoolReverse3D(originalInput, kernelSize, stride, padding) =
+        match dtype with 
+        | Dtype.Bool | Dtype.Integral -> opNotSupported "AvgPoolReverse3D" dtype
+        | _ ->
+        let resultt = tt.AvgPool3DBackward(originalInput.TorchTensor, int64s kernelSize, strides=int64s stride, paddings=int64s padding)
+        let result = t1.MakeLike(resultt, shape=originalInput.Shape)
+        result
+
     override t.SumT2Dim0() =
         let result = tt.Sum([| 0L |], ``type``= tt.Type)
         let resultShape = [|t.Shape.[1]|]
