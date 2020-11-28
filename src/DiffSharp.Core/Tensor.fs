@@ -1854,35 +1854,11 @@ type Tensor =
     /// <summary>A method to enable the use of the F# function <c>abs</c>.</summary>
     static member Abs(a:Tensor) : Tensor = a.abs() // needed for FSharp.Core abs operator overload
 
-    /// <summary>Applies the rectified linear unit function element-wise.</summary>
-    member a.relu() =
-        let inline fRaw(a:RawTensor) = a.ReluT()
-        let inline fTensor(a:Tensor) = a.relu()
-        let inline dfTensorFwd(cp,ap:Tensor,ad:Tensor) = let sap = ap.sign() in ad * sap.abs() * (sap + 1.) / 2.
-        let inline dfTensorRev(a) = ReluT(a)
-        Tensor.OpUnary(a, fRaw, fTensor, dfTensorFwd, dfTensorRev)
-
-    /// <summary>Applies the leaky rectified linear unit function element-wise</summary>
-    /// <remarks>\[\text{LeakyReLU}(x) = \max(0, x) + \text{negative\_slope} * \min(0, x)\]</remarks>
-    /// <param name="negativeSlope">Controls the angle of the negative slope. Default: 0.01.</param>
-    member a.leakyRelu(?negativeSlope:float) =
-        let negativeSlope = defaultArg negativeSlope 0.01
-        let zeros = a.zerosLike() in zeros.max(a) + negativeSlope * zeros.min(a)
-
-    /// <summary>Applies the sigmoid element-wise function</summary>
-    /// <remarks>\[\text{Sigmoid}(x) = \frac{1}{1 + \exp(-x)}\]</remarks>
-    member a.sigmoid() =
-        let inline fRaw(a:RawTensor) = a.SigmoidT()
-        let inline fTensor(a:Tensor) = a.sigmoid()
-        let inline dfTensorFwd(cp:Tensor,ap,ad) = ad * cp * (1. - cp)
-        let inline dfTensorRev(a) = SigmoidT(a)
-        Tensor.OpUnary(a, fRaw, fTensor, dfTensorFwd, dfTensorRev)
-
     /// <summary>Applies the exp function element-wise.</summary>
     member a.exp() =
         let inline fRaw(a:RawTensor) = a.ExpT()
         let inline fTensor(a:Tensor) = a.exp()
-        let inline dfTensorFwd(cp,ap,ad) = ad * cp
+        let inline dfTensorFwd(cp,ap:Tensor,ad:Tensor) = ad * cp
         let inline dfTensorRev(a) = ExpT(a)
         Tensor.OpUnary(a, fRaw, fTensor, dfTensorFwd, dfTensorRev)
 
@@ -1900,15 +1876,6 @@ type Tensor =
 
     /// <summary>A method to enable the use of the F# function <c>log</c>.</summary>
     static member Log(a:Tensor) = a.log() // needed for FSharp.Core log operator overload
-
-    /// <summary>Applies the softplus function element-wise.</summary>
-    /// <remarks>\[\text{Softplus}(x) = \frac{1}{\beta} * \log(1 + \exp(\beta * x))\]</remarks>
-    member a.softplus() =
-        let inline fRaw(a:RawTensor) = a.SoftplusT()
-        let inline fTensor(a:Tensor) = a.softplus()
-        let inline dfTensorFwd(cp,ap:Tensor,ad) = ad / (1. + ap.neg().exp())
-        let inline dfTensorRev(a) = SoftplusT(a)
-        Tensor.OpUnary(a, fRaw, fTensor, dfTensorFwd, dfTensorRev)
 
     /// <summary>Returns a new tensor with the logarithm to the base 10 of the elements of input.</summary>
     /// <remarks>\[y_{i} = \log_{10} (x_{i})\]</remarks>
@@ -2806,9 +2773,6 @@ type Tensor =
                         | CeilT(a) -> reset (a::tt)
                         | RoundT(a) -> reset (a::tt)
                         | AbsT(a) -> reset (a::tt)
-                        | ReluT(a) -> reset (a::tt)
-                        | SoftplusT(a) -> reset (a::tt)
-                        | SigmoidT(a) -> reset (a::tt)
                         | ExpT(a) -> reset (a::tt)
                         | LogT(a) -> reset (a::tt)
                         | Log10T(a) -> reset (a::tt)
@@ -2823,6 +2787,7 @@ type Tensor =
                         | AcosT(a) -> reset (a::tt)
                         | AtanT(a) -> reset (a::tt)
                         | NewT -> reset tt
+                        | OpT(inps, _) -> reset (inps@tt)
                     else reset tt
                 | _ -> reset tt
         reset [t]
@@ -2966,24 +2931,22 @@ type Tensor =
                         | FloorT(a) -> push (check(a.zerosLike(), a) :: tt)
                         | CeilT(a) -> push (check(a.zerosLike(), a) :: tt)
                         | RoundT(a) -> push (check(a.zerosLike(), a) :: tt)
-                        | AbsT(a) -> push (check(t.derivative * a.primal.sign(), a) :: tt)
-                        | ReluT(a) -> let sap = a.primal.sign() in push (check(t.derivative * (sap.abs()) * (sap + 1.) / 2., a) :: tt)
-                        | SoftplusT(a) -> push (check(t.derivative / (1. + a.primal.neg().exp()), a) :: tt)
-                        | SigmoidT(a) -> push (check(t.derivative * t.primal * (1. - t.primal), a) :: tt)
-                        | ExpT(a) -> push (check(t.derivative * t.primal, a) :: tt)
-                        | LogT(a) -> push (check(t.derivative / a.primal, a) :: tt)
-                        | Log10T(a) -> push (check(t.derivative / (a.primal * log10Val), a) :: tt)
-                        | SqrtT(a) -> push (check(t.derivative / (2. * t.primal), a) :: tt)
-                        | SinT(a) -> push (check(t.derivative * (a.primal.cos()), a) :: tt)
-                        | CosT(a) -> push (check(-t.derivative * (a.primal.sin()), a) :: tt)
-                        | TanT(a) -> let cosap = a.primal.cos() in push (check(t.derivative / (cosap * cosap), a) :: tt)
-                        | SinhT(a) -> push (check(t.derivative * (a.primal.cosh()), a) :: tt)
-                        | CoshT(a) -> push (check(t.derivative * (a.primal.sinh()), a) :: tt)
-                        | TanhT(a) -> let coshap = a.primal.cosh() in push (check(t.derivative / (coshap * coshap), a) :: tt)
-                        | AsinT(a) -> push (check(t.derivative / Tensor.Sqrt(1. - a.primal*a.primal), a) :: tt)
-                        | AcosT(a) -> push (check(-t.derivative / Tensor.Sqrt(1. - a.primal*a.primal), a) :: tt)
-                        | AtanT(a) -> push (check(t.derivative / (1. + a.primal*a.primal), a) :: tt)
+                        | AbsT(a) -> push (check(td * a.primal.sign(), a) :: tt)
+                        | ExpT(a) -> push (check(td * t.primal, a) :: tt)
+                        | LogT(a) -> push (check(td / a.primal, a) :: tt)
+                        | Log10T(a) -> push (check(td / (a.primal * log10Val), a) :: tt)
+                        | SqrtT(a) -> push (check(td / (2. * t.primal), a) :: tt)
+                        | SinT(a) -> push (check(td * (a.primal.cos()), a) :: tt)
+                        | CosT(a) -> push (check(-td * (a.primal.sin()), a) :: tt)
+                        | TanT(a) -> let cosap = a.primal.cos() in push (check(td / (cosap * cosap), a) :: tt)
+                        | SinhT(a) -> push (check(td * (a.primal.cosh()), a) :: tt)
+                        | CoshT(a) -> push (check(td * (a.primal.sinh()), a) :: tt)
+                        | TanhT(a) -> let coshap = a.primal.cosh() in push (check(td / (coshap * coshap), a) :: tt)
+                        | AsinT(a) -> push (check(td / Tensor.Sqrt(1. - a.primal*a.primal), a) :: tt)
+                        | AcosT(a) -> push (check(-td / Tensor.Sqrt(1. - a.primal*a.primal), a) :: tt)
+                        | AtanT(a) -> push (check(td / (1. + a.primal*a.primal), a) :: tt)
                         | NewT -> push tt
+                        | OpT(inps, deriv) -> push (List.zip (deriv td t.primal) inps @ tt)
                     else push tt
                 | _ -> push tt
         push [(value, t)]
@@ -3074,9 +3037,6 @@ and TensorOp =
     | CeilT of Tensor
     | RoundT of Tensor
     | AbsT of Tensor
-    | ReluT of Tensor
-    | SoftplusT of Tensor
-    | SigmoidT of Tensor
     | ExpT of Tensor
     | LogT of Tensor
     | Log10T of Tensor
@@ -3091,3 +3051,125 @@ and TensorOp =
     | AcosT of Tensor
     | AtanT of Tensor
     | NewT
+    | OpT of inputs: Tensor list * deriv: ((* t.derivative *) Tensor -> (* t.primal *) Tensor -> (* input-grad *) Tensor list)
+
+/// Defines an extension implementing a unary function and its gradients
+[<AbstractClass>]
+type UnaryOp() =
+
+    /// <summary>Compute the function \(f(a)\) for raw tensors.</summary>
+    abstract ComputeRaw: a: RawTensor -> RawTensor
+
+    /// <summary>Computes the Jacobian of \(f\) applied to \(ad)\).</summary>
+    ///
+    /// <param name="fa">\(f\) applied to \(a\). Can be useful in reducing recomputation. If \(f: InShape \rightarrow OutShape\) then this has shape \(OutShape\).</param>
+    /// <param name="a">The primal of \(a\). If \(f: InShape \rightarrow OutShape\) then this has shape \(InShape\).</param>
+    /// <param name="ad">The vector of input differentials for \(a\). If \(f: InShape \rightarrow OutShape\) then this has shape \(InShape\).</param>
+    ///
+    /// <remarks>
+    ///    Assume \(f: InShape \rightarrow OutShape\) and for simplicty assume each is a tensor flattened to a vector.
+    ///    Then \(a\) and \(ad\) have shape \(InShape\), the Jacobian of \(f\) is
+    ///    a matrix with shape \(OutShape \times InShape\) and the result of this method
+    ///    should have shape \(OutShape\).
+    ///
+    ///    For some functions this will be identical to Reverse and one can just call the other.
+    /// </remarks>
+    abstract Forward: fa: Tensor * a: Tensor * ad: Tensor -> Tensor
+
+    /// <summary>Computes the transpose of the Jacobian of \(f\) applied to \(td)\).</summary>
+    ///
+    /// <param name="t">The primal of the tangent for \(f\) applied to \(a\). Can be useful in reducing recomputation. If \(f: InShape \rightarrow OutShape\) then this has shape \(OutShape\).</param>
+    /// <param name="a">The primal of \(a\). Shape is InShape.</param>
+    /// <param name="td">The adjoints of \f(a\). Shape is OutShape.</param>
+    /// <remarks>
+    ///    Assume \(f: InShape \rightarrow OutShape\) and for simplicty assume each is a tensor flattened to a vector.
+    ///    Then \(a\) has shape InShape, \(td\) has shape \(OutShape\), 
+    ///    the transpose of the Jacobian of \(f\( is a matrix with shape \(InShape \times OutShape\)
+    ///    and the result of this method should have shape \(InShape\).
+    ///
+    ///    For some functions this will be identical to Reverse and one can just call the other.
+    /// </remarks>
+    abstract Reverse: t: Tensor * a: Tensor * td: Tensor -> Tensor
+
+/// Defines an extension implementing a binary function and its gradients
+[<AbstractClass>]
+type BinaryOp() =
+    /// Compute the function on raw tensors
+    abstract ComputeRaw: a: RawTensor * b: RawTensor -> RawTensor
+
+    /// <summary>Computes \(Jacobian(f)(ad,bd)\).</summary>
+    ///
+    /// <param name="fab">\(f\) applied to \(a\) and \(bp\). If \(f: InShape1 \times InShape2 \rightarrow OutShape\) then this has shape \(OutShape\).</param>
+    /// <param name="a">The primal of \(a\). If \(f: InShape1 \times InShape2 \rightarrow OutShape\) then this has shape \(InShape1\).</param>
+    /// <param name="b">The primal of \(b\). If \(f: InShape1 \times InShape2 \rightarrow OutShape\) then this has shape \(InShape2\).</param>
+    /// <param name="ad">The vector of input differentials for \(a\). If \(f: InShape1 \times InShape2 \rightarrow OutShape\) then this has shape \(InShape1\).</param>
+    /// <param name="bd">The vector of input differentials for \(b\). If \(f: InShape1 \times InShape2 \rightarrow OutShape\) then this has shape \(InShape2\).</param>
+    ///
+    /// <remarks>
+    ///    Used in forward mode.
+    ///
+    ///    Assume \(f\) accepts input shapes \(InShape1 \times InShape2\) and outputs shape \(OutShape\).  For simplicty assume each is a tensor flattened to a vector.
+    ///    Then \(a\) and \(ad\) have shape InShape1, \(b\) and \(bd\) have shape InShape2, the Jacobian of \(f\) is
+    ///    a matrix with shape \(OutShape \times InShape1+InShape2\) and the result should have shape \(OutShape\).
+    /// </remarks>
+    abstract Forward: fab: Tensor * a: Tensor * ad: Tensor * b: Tensor * bd: Tensor -> Tensor
+
+    /// <summary>Computes \(Jacobian(f)(ad,0)\).</summary>
+    /// <remarks>A naive implementation of this method is <c>op.Forward(fab, a, ad, b, b.zerosLike())</c>. A more efficient implementation is usually possible. </remarks>
+    abstract ForwardA: fab: Tensor * a: Tensor * ad: Tensor * b: Tensor -> Tensor
+
+    /// <summary>Computes \(Jacobian(f)(0, bd)\).</summary>
+    /// <remarks>A naive implementation of this method is <c>op.Forward(fab, a, a.zerosLike(), b, bd)</c>. A more efficient implementation is usually possible. </remarks>
+    abstract ForwardB: fab: Tensor * a:Tensor * b: Tensor * bd: Tensor -> Tensor
+
+    /// <summary>Computes the transpose of the Jacobian of \(f(a,b)\) applied to \(td)\).</summary>
+    ///
+    /// <param name="t">The primal of the tangent of \(f\) applied to \(a\) and \(b\). Can be useful in reducing recomputation. If \(f: InShape1 \times InShape2 \rightarrow OutShape\) then this has shape \(OutShape\).</param>
+    /// <param name="a">The primal of \(a\). If \(f: InShape1 \times InShape2 \rightarrow OutShape\) then this has shape \(InShape1\).</param>
+    /// <param name="b">The primal of \(b\). If \(f: InShape1 \times InShape2 \rightarrow OutShape\) then this has shape \(InShape2\).</param>
+    /// <param name="td">The adjoints of \f(a,b\). If \(f: InShape1 \times InShape2 \rightarrow OutShape\) then this has shape \(OutShape\).</param>
+    ///
+    /// <remarks>A default implementation of this method is provided. A more efficient implementation can be given by overriding this default. </remarks>
+    /// <remarks>
+    ///    Used in reverse mode.
+    ///
+    ///    Assume \(f: InShape \rightarrow OutShape\) and for simplicty assume each is a tensor flattened to a vector.
+    ///    Then \(a\) has shape InShape, \(td\) has shape \(OutShape\), 
+    ///    the transpose of the Jacobian of \(f\( is a matrix with shape \(InShape \times OutShape\)
+    ///    and the result of this method should have shape \(InShape\).
+    /// </remarks>
+    abstract Reverse: t: Tensor * a: Tensor * b: Tensor * td: Tensor -> Tensor * Tensor
+    default op.Reverse(t, a, b, td) = op.ReverseA(t, a, b, td), op.ReverseB(t, a, b, td)
+
+    /// <summary>Computes the first "a" half transpose of the Jacobian of \(f\) applied to \(td)\).</summary>
+    abstract ReverseA: t: Tensor * a: Tensor * b: Tensor * td: Tensor -> Tensor
+
+    /// <summary>Computes the second "b" half transpose of the Jacobian of \(f\) applied to \(td)\).</summary>
+    /// <remarks>A default implementation of this method is provided. A more efficient implementation can be given by overriding this default. </remarks>
+    abstract ReverseB: t: Tensor * a: Tensor * b: Tensor * td: Tensor -> Tensor
+
+type Tensor with
+    /// <summary>Implement a unary extension operation.</summary>
+    /// <param name="ext">The specification of the extension operation.</param>
+    static member Op(ext: UnaryOp) =
+        (fun a -> 
+            Tensor.OpUnary(a, ext.ComputeRaw, Tensor.Op ext, 
+                (fun (fa, a, ad) -> ext.Forward(fa, a, ad)), 
+                (fun a -> OpT([a], (fun td tp -> [ext.Reverse (tp, a.primal, td)])))
+            ))
+
+    /// <summary>Implement a binary extension operation.</summary>
+    /// <param name="ext">The specification of the extension operation.</param>
+    static member Op(ext: BinaryOp) =
+        (fun (a, b) -> 
+            Tensor.OpBinary(a, b, ext.ComputeRaw, Tensor.Op ext, 
+                (fun (fab, a, ad, b, bd) -> ext.Forward(fab, a, ad, b, bd)), 
+                (fun (fab, a, ad) -> ext.ForwardA(fab, a, ad, b)),
+                (fun (fab, b, db) -> ext.ForwardB(fab, a, b, db)),
+                (fun (a,b) -> OpT([a;b], (fun td tp -> let da, db = ext.Reverse (tp, a.primal, b.primal, td) in [da; db]))),
+                (fun (a,b) -> OpT([a;b], (fun td tp -> let da = ext.ReverseA (tp, a.primal, b, td) in [da]))),
+                (fun (a,b) -> OpT([a;b], (fun td tp -> let db = ext.ReverseB (tp, a, b.primal, td) in [db])))
+            ))
+
+[<assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DiffSharp.Tests")>]
+do()

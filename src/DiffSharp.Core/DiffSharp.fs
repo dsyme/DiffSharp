@@ -753,26 +753,6 @@ type dsharp =
     /// <remarks>The tensor will have the same element type as the input tensor.</remarks>
     static member abs(input:Tensor) = input.abs()
 
-    /// <summary>Applies the rectified linear unit function element-wise.</summary>
-    /// <param name="input">The input tensor.</param>
-    static member relu(input:Tensor) = input.relu()
-
-    /// <summary>Applies the leaky rectified linear unit function element-wise</summary>
-    /// <remarks>\[\text{LeakyReLU}(x) = \max(0, x) + \text{negative\_slope} * \min(0, x)\]</remarks>
-    /// <param name="input">The input tensor.</param>
-    /// <param name="negativeSlope">Controls the angle of the negative slope. Default: 0.01.</param>
-    static member leakyRelu(input:Tensor, ?negativeSlope:float) = input.leakyRelu(?negativeSlope=negativeSlope)
-
-    /// <summary>Applies the sigmoid element-wise function</summary>
-    /// <remarks>\[\text{Sigmoid}(x) = \frac{1}{1 + \exp(-x)}\]</remarks>
-    /// <param name="input">The input tensor.</param>
-    static member sigmoid(input:Tensor) = input.sigmoid()
-
-    /// <summary>Applies the softplus function element-wise.</summary>
-    /// <remarks>\[\text{Softplus}(x) = \frac{1}{\beta} * \log(1 + \exp(\beta * x))\]</remarks>
-    /// <param name="input">The input tensor.</param>
-    static member softplus(input:Tensor) = input.softplus()
-
     /// <summary>Applies the exp function element-wise.</summary>
     /// <param name="input">The input tensor.</param>
     static member exp(input:Tensor) = input.exp()

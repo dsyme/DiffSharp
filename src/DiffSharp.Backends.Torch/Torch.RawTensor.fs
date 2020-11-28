@@ -716,6 +716,68 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
         let resultt = tt.MaxUnpool3D(indices.TorchTensor, int64s outputSize, strides, padding)
         t1.MakeLike(resultt, shape=outputShape)
 
+    override t1.AvgPool1D(kernelSize, stride, padding) =
+        let _batchSize, _channels, _inputSize, _outputSize, outputShape = Shape.checkCanAvgpool1d dtype t1.Shape kernelSize stride padding
+        match dtype with 
+        | Dtype.Bool | Dtype.Integral -> opNotSupported "AvgPool1D" dtype
+        | _ ->
+        let resultt = tt.AvgPool1D(int64 kernelSize.Value, stride=int64 stride.Value, padding=int64 padding.Value)
+        let result = t1.MakeLike(resultt, shape=outputShape)
+        result
+
+    override t1.AvgPool2D(kernelSize, stride, padding) = 
+        let _batchSize, _channels, _inputSize, _kernelSize, _outputSize, outputShape = Shape.checkCanAvgpool2d dtype t1.Shape kernelSize stride padding
+        match dtype with 
+        | Dtype.Bool | Dtype.Integral -> opNotSupported "AvgPool2D" dtype
+        | _ ->
+        let kernelSize = kernelSize |> Int.values
+        let stride = stride |> Int.values
+        let padding = padding |> Int.values
+        let resultt = tt.AvgPool2D(int64s kernelSize, strides=int64s stride, paddings=int64s padding)
+        let result = t1.MakeLike(resultt, shape=outputShape)
+        result
+
+    override t1.AvgPool3D(kernelSize, stride, padding) =
+        let _batchSize, _channels, _inputSize, _kernelSize, _outputSize, outputShape = Shape.checkCanAvgpool3d dtype t1.Shape kernelSize stride padding
+        match dtype with 
+        | Dtype.Bool | Dtype.Integral -> opNotSupported "AvgPool3D" dtype
+        | _ ->
+        let kernelSize = kernelSize |> Int.values
+        let stride = stride |> Int.values
+        let padding = padding |> Int.values
+        let resultt = tt.AvgPool3D(int64s kernelSize, strides=int64s stride, paddings=int64s padding)
+        let result = t1.MakeLike(resultt, shape=outputShape)
+        result
+
+    override t1.AvgPoolReverse1D(originalInput, kernelSize, stride, padding) =
+        let t1X = t1.UnsqueezeT(2)
+        let originalInputX = originalInput.UnsqueezeT(2)
+        let resulttX = t1X.AvgPoolReverse2D(originalInputX, [| 1I; kernelSize |], [| 1I; stride |], [| 0I; padding |])
+        let resultt = resulttX.SqueezeT(2)
+        resultt
+
+    override t1.AvgPoolReverse2D(originalInput, kernelSize, stride, padding) = 
+        match dtype with 
+        | Dtype.Bool | Dtype.Integral -> opNotSupported "AvgPoolReverse2D" dtype
+        | _ ->
+        let kernelSize = kernelSize |> Int.values
+        let stride = stride |> Int.values
+        let padding = padding |> Int.values
+        let resultt = tt.AvgPool2DBackward(originalInput.TorchTensor, int64s kernelSize, strides=int64s stride, paddings=int64s padding)
+        let result = t1.MakeLike(resultt, shape=originalInput.Shape)
+        result
+
+    override t1.AvgPoolReverse3D(originalInput, kernelSize, stride, padding) =
+        match dtype with 
+        | Dtype.Bool | Dtype.Integral -> opNotSupported "AvgPoolReverse3D" dtype
+        | _ ->
+        let kernelSize = kernelSize |> Int.values
+        let stride = stride |> Int.values
+        let padding = padding |> Int.values
+        let resultt = tt.AvgPool3DBackward(originalInput.TorchTensor, int64s kernelSize, strides=int64s stride, paddings=int64s padding)
+        let result = t1.MakeLike(resultt, shape=originalInput.Shape)
+        result
+
     override t.SumT2Dim0() =
         let result = tt.Sum([| 0L |], ``type``= tt.Type)
         let resultShape = Shape [|t.Shape.[1]|]
@@ -765,6 +827,41 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
         | Dtype.Bool -> opNotSupported "ReluT" dtype
         | Dtype.Int8 -> t.Cast(Dtype.Int32).ReluT().Cast(Dtype.Int8) // TODO: there is odd behaviour from torch for relu on int8, may have been fixed in later version?
         | _ ->   t.MakeLike(tt.Relu())
+
+    override t.LeakyReluT(negativeSlope) =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "LeakyReluT" dtype
+        | _ ->   t.MakeLike(tt.LeakyRelu(toTorchScalar negativeSlope))
+
+    override t.EluT() =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "EluT" dtype
+        | _ ->   t.MakeLike(tt.elu())
+
+    override t.GeluT() =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "GeluT" dtype
+        | _ ->   t.MakeLike(tt.Gelu())
+
+    override t.HardsigmoidT() =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "HardsigmoidT" dtype
+        | _ ->   t.MakeLike(tt.Hardsigmoid())
+
+    override t.Relu6T() =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "Relu6T" dtype
+        | _ ->   t.MakeLike(tt.Relu6())
+
+    override t.HardswishT() =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "HardswishT" dtype
+        | _ ->   t.MakeLike(tt.Hardswish())
+
+    override t.SiluT() =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "SiluT" dtype
+        | _ ->   t.MakeLike(tt.Silu())
 
     override t.SigmoidT() =
         match dtype with 
@@ -1010,6 +1107,20 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
     override _.AbsInPlace() = checkMutable(); tt.AbsInPlace() |> ignore
 
     override _.ReluInPlace() = checkMutable(); tt.ReluInPlace() |> ignore
+
+    override _.Relu6InPlace() = checkMutable(); tt.Relu6InPlace() |> ignore
+
+    override _.LeakyReluInPlace(negativeSlope) = checkMutable(); tt.LeakyReluInPlace(toTorchScalar negativeSlope) |> ignore
+
+    override _.EluInPlace() = checkMutable(); tt.EluInPlace() |> ignore
+
+    override _.GeluInPlace() = checkMutable(); tt <- tt.Gelu() 
+
+    override _.SiluInPlace() = checkMutable(); tt.SiluInPlace() |> ignore
+
+    override _.HardsigmoidInPlace() = checkMutable(); tt.HardsigmoidInPlace() |> ignore
+
+    override _.HardswishInPlace() = checkMutable(); tt.HardswishInPlace() |> ignore
 
     override _.SoftplusInPlace() = checkMutable(); tt <- tt.Softplus() 
 

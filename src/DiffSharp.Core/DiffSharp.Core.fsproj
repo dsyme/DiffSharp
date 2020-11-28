@@ -22,6 +22,8 @@
     <Compile Include="DiffSharp.Compose.fs" />
     <Compile Include="DiffSharp.Shorten.fs" />
     <Compile Include="DiffSharp.Numerical.fs" />
+    <Compile Include="DiffSharp.AvgPool.fs" />
+    <Compile Include="DiffSharp.Activations.fs" />
     <Compile Include="DiffSharp.ShapeChecking.fs" />
     <Compile Include="DiffSharp.ShapeChecking.Slicing.fs" />
     <Compile Include="Distributions.fs" />
