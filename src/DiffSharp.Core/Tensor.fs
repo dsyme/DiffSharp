@@ -1790,15 +1790,6 @@ type Tensor =
     /// <summary>A method to enable the use of the F# function <c>log</c>.</summary>
     static member Log(a:Tensor) = a.log() // needed for FSharp.Core log operator overload
 
-    /// <summary>Applies the softplus function element-wise.</summary>
-    /// <remarks>\[\text{Softplus}(x) = \frac{1}{\beta} * \log(1 + \exp(\beta * x))\]</remarks>
-    member a.softplus() =
-        let inline fRaw(a:RawTensor) = a.SoftplusT()
-        let inline fTensor(a:Tensor) = a.softplus()
-        let inline dfTensorFwd(cp,ap:Tensor,ad:Tensor) = ad / (1. + ap.neg().exp())
-        let inline dfTensorRev(a) = SoftplusT(a)
-        Tensor.OpUnary(a, fRaw, fTensor, dfTensorFwd, dfTensorRev)
-
     /// <summary>Returns a new tensor with the logarithm to the base 10 of the elements of input.</summary>
     /// <remarks>\[y_{i} = \log_{10} (x_{i})\]</remarks>
     member a.log10() =
