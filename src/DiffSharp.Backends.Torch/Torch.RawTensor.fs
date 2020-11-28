@@ -750,6 +750,41 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
         | Dtype.Int8 -> t.Cast(Dtype.Int32).ReluT().Cast(Dtype.Int8) // TODO: there is odd behaviour from torch for relu on int8, may have been fixed in later version?
         | _ ->   t.MakeLike(tt.Relu())
 
+    override t.LeakyReluT(negativeSlope) =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "LeakyReluT" dtype
+        | _ ->   t.MakeLike(tt.LeakyRelu(toTorchScalar negativeSlope))
+
+    override t.EluT() =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "EluT" dtype
+        | _ ->   t.MakeLike(tt.elu())
+
+    override t.GeluT() =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "GeluT" dtype
+        | _ ->   t.MakeLike(tt.Gelu())
+
+    override t.HardsigmoidT() =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "HardsigmoidT" dtype
+        | _ ->   t.MakeLike(tt.Hardsigmoid())
+
+    override t.Relu6T() =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "Relu6T" dtype
+        | _ ->   t.MakeLike(tt.Relu6())
+
+    override t.HardswishT() =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "HardswishT" dtype
+        | _ ->   t.MakeLike(tt.Hardswish())
+
+    override t.SiluT() =
+        match dtype with 
+        | Dtype.Bool -> opNotSupported "SiluT" dtype
+        | _ ->   t.MakeLike(tt.Silu())
+
     override t.SigmoidT() =
         match dtype with 
         | Dtype.IntegralOrBool -> opNotSupported "SigmoidT" dtype
@@ -994,6 +1029,20 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
     override _.AbsInPlace() = checkMutable(); tt.AbsInPlace() |> ignore
 
     override _.ReluInPlace() = checkMutable(); tt.ReluInPlace() |> ignore
+
+    override _.Relu6InPlace() = checkMutable(); tt.Relu6InPlace() |> ignore
+
+    override _.LeakyReluInPlace(negativeSlope) = checkMutable(); tt.LeakyReluInPlace(toTorchScalar negativeSlope) |> ignore
+
+    override _.EluInPlace() = checkMutable(); tt.EluInPlace() |> ignore
+
+    override _.GeluInPlace() = checkMutable(); tt <- tt.Gelu() 
+
+    override _.SiluInPlace() = checkMutable(); tt.SiluInPlace() |> ignore
+
+    override _.HardsigmoidInPlace() = checkMutable(); tt.HardsigmoidInPlace() |> ignore
+
+    override _.HardswishInPlace() = checkMutable(); tt.HardswishInPlace() |> ignore
 
     override _.SoftplusInPlace() = checkMutable(); tt <- tt.Softplus() 
 
