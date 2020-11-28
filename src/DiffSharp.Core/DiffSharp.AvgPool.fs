@@ -22,12 +22,7 @@ module AvgPoolExtensions =
                  }
                  a
 
-        /// <summary>Computes a partial inverse of avgpool1d</summary>
-        /// <param name="originalInput">The original input to avgpool1d, used for size information.</param>
-        /// <param name="kernelSize">The size of the window to take a max over.</param>
-        /// <param name="stride">The stride of the window. Default value is kernelSize.</param>
-        /// <param name="padding">The implicit zero padding to be added on both sides.</param>
-        member a.avgpoolReverse1d(originalInput:Tensor, kernelSize:int, ?stride:int, ?padding:int(* , ?ceil_mode: bool, ?count_include_pad: bool *)) =
+        member internal a.avgpoolReverse1d(originalInput:Tensor, kernelSize:int, ?stride:int, ?padding:int(* , ?ceil_mode: bool, ?count_include_pad: bool *)) =
             let stride = defaultArg stride kernelSize
             let padding = defaultArg padding 0
             //let ceil_mode = defaultArg ceil_mode false
@@ -60,15 +55,7 @@ module AvgPoolExtensions =
                  }
                  a
 
-        /// <summary>Computes a partial inverse of avgpool2d</summary>
-        /// <param name="originalInput">The original input to avgpool1d, used for size information.</param>
-        /// <param name="kernelSize">The size of the window to take a max over.</param>
-        /// <param name="stride">The stride of the window. Default value is kernelSize.</param>
-        /// <param name="padding">The implicit zero padding to be added on both sides.</param>
-        /// <param name="kernelSizes">The sizes of the window to take a max over.</param>
-        /// <param name="strides">The strides of the window. Default value is kernelSize.</param>
-        /// <param name="paddings">The implicit zero paddings to be added on both sides.</param>
-        member a.avgpoolReverse2d(originalInput:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>(* , ?ceil_mode: bool, ?count_include_pad: bool *)) =
+        member internal a.avgpoolReverse2d(originalInput:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>(* , ?ceil_mode: bool, ?count_include_pad: bool *)) =
             let kernelSizes, strides, paddings = Shape.resolve2dMaxPoolSizes kernelSize kernelSizes stride strides padding paddings
             //let ceil_mode = defaultArg ceil_mode false
             //let count_include_pad= defaultArg count_include_pad true
@@ -100,15 +87,7 @@ module AvgPoolExtensions =
                  }
                  a
 
-        /// <summary>Computes a partial inverse of avgpool1d</summary>
-        /// <param name="originalInput">The original input to avgpool1d, used for size information.</param>
-        /// <param name="kernelSize">The size of the window to take a max over.</param>
-        /// <param name="stride">The stride of the window. Default value is kernelSize.</param>
-        /// <param name="padding">The implicit zero padding to be added on both sides.</param>
-        /// <param name="kernelSizes">The sizes of the window to take a max over.</param>
-        /// <param name="strides">The strides of the window. Default value is kernelSize.</param>
-        /// <param name="paddings">The implicit zero paddings to be added on both sides.</param>
-        member a.avgpoolReverse3d(originalInput:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>(* , ?ceil_mode: bool, ?count_include_pad: bool *)) =
+        member internal a.avgpoolReverse3d(originalInput:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>(* , ?ceil_mode: bool, ?count_include_pad: bool *)) =
             let kernelSizes, strides, paddings = Shape.resolve3dMaxPoolSizes kernelSize kernelSizes stride strides padding paddings
             //let ceil_mode = defaultArg ceil_mode false
             //let count_include_pad= defaultArg count_include_pad true
@@ -129,15 +108,6 @@ module AvgPoolExtensions =
         static member avgpool1d(input: Tensor, kernelSize:int, ?stride:int, ?padding:int(* , ?ceil_mode: bool, ?count_include_pad: bool *)) =
             input.avgpool2d(kernelSize=kernelSize, ?stride=stride, ?padding=padding(* , ?ceil_mode=ceil_mode, ?count_include_pad=count_include_pad *))
 
-        /// <summary>Computes a partial inverse of avgpool1d</summary>
-        /// <param name="input">The input tensor.</param>
-        /// <param name="originalInput">The original input to avgpool1d, used for size information.</param>
-        /// <param name="kernelSize">The size of the window to take a max over.</param>
-        /// <param name="stride">The stride of the window. Default value is kernelSize.</param>
-        /// <param name="padding">The implicit zero padding to be added on both sides.</param>
-        static member avgpoolReverse1d(input: Tensor, originalInput:Tensor, kernelSize:int, ?stride:int, ?padding:int(* , ?ceil_mode: bool, ?count_include_pad: bool *)) =
-            input.avgpoolReverse2d(originalInput, kernelSize=kernelSize, ?stride=stride, ?padding=padding(* , ?ceil_mode=ceil_mode, ?count_include_pad=count_include_pad *))
-
         /// <summary>Applies a 2D average pooling over an input signal composed of several input planes, returning the max indices along with the outputs.</summary>
         /// <param name="input">The input tensor.</param>
         /// <param name="kernelSize">The size of the window to take a max over.</param>
@@ -149,18 +119,6 @@ module AvgPoolExtensions =
         static member avgpool2d(input: Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>(* , ?ceil_mode: bool, ?count_include_pad: bool *)) =
             input.avgpool2d(?kernelSize=kernelSize, ?stride=stride, ?padding=padding, ?kernelSizes=kernelSizes, ?strides=strides, ?paddings=paddings(* , ?ceil_mode=ceil_mode, ?count_include_pad=count_include_pad *))
 
-        /// <summary>Computes a partial inverse of avgpool2d</summary>
-        /// <param name="input">The input tensor.</param>
-        /// <param name="originalInput">The original input to avgpool2d, used for size information.</param>
-        /// <param name="kernelSize">The size of the window to take a max over.</param>
-        /// <param name="stride">The stride of the window. Default value is kernelSize.</param>
-        /// <param name="padding">The implicit zero padding to be added on both sides.</param>
-        /// <param name="kernelSizes">The sizes of the window to take a max over.</param>
-        /// <param name="strides">The strides of the window. Default value is kernelSize.</param>
-        /// <param name="paddings">The implicit zero paddings to be added on both sides.</param>
-        static member avgpoolReverse2d(input: Tensor, originalInput:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>(* , ?ceil_mode: bool, ?count_include_pad: bool *)) =
-            input.avgpoolReverse2d(originalInput, ?kernelSize=kernelSize, ?stride=stride, ?padding=padding, ?kernelSizes=kernelSizes, ?strides=strides, ?paddings=paddings(* , ?ceil_mode=ceil_mode, ?count_include_pad=count_include_pad *))
-
         /// <summary>Applies a 2D average pooling over an input signal composed of several input planes, returning the max indices along with the outputs.</summary>
         /// <param name="input">The input tensor.</param>
         /// <param name="kernelSize">The size of the window to take a max over.</param>
@@ -171,16 +129,4 @@ module AvgPoolExtensions =
         /// <param name="paddings">The implicit zero paddings to be added on both sides.</param>
         static member avgpool3d(input: Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>(* , ?ceil_mode: bool, ?count_include_pad: bool *)) =
             input.avgpool3d(?kernelSize=kernelSize, ?stride=stride, ?padding=padding, ?kernelSizes=kernelSizes, ?strides=strides, ?paddings=paddings(* , ?ceil_mode=ceil_mode, ?count_include_pad=count_include_pad *))
-
-        /// <summary>Computes a partial inverse of avgpool3d</summary>
-        /// <param name="input">The input tensor.</param>
-        /// <param name="originalInput">The original input to avgpool3d, used for size information.</param>
-        /// <param name="kernelSize">The size of the window to take a max over.</param>
-        /// <param name="stride">The stride of the window. Default value is kernelSize.</param>
-        /// <param name="padding">The implicit zero padding to be added on both sides.</param>
-        /// <param name="kernelSizes">The sizes of the window to take a max over.</param>
-        /// <param name="strides">The strides of the window. Default value is kernelSize.</param>
-        /// <param name="paddings">The implicit zero paddings to be added on both sides.</param>
-        static member avgpoolReverse3d(input: Tensor, originalInput:Tensor, ?kernelSize:int, ?stride:int, ?padding:int, ?kernelSizes:seq<int>, ?strides:seq<int>, ?paddings:seq<int>(* , ?ceil_mode: bool, ?count_include_pad: bool *)) =
-            input.avgpoolReverse3d(originalInput, ?kernelSize=kernelSize, ?stride=stride, ?padding=padding, ?kernelSizes=kernelSizes, ?strides=strides, ?paddings=paddings(* , ?ceil_mode=ceil_mode, ?count_include_pad=count_include_pad *))
 
