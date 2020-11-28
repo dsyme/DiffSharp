@@ -1767,30 +1767,6 @@ type Tensor =
     /// <summary>A method to enable the use of the F# function <c>abs</c>.</summary>
     static member Abs(a:Tensor) : Tensor = a.abs() // needed for FSharp.Core abs operator overload
 
-    /// <summary>Applies the rectified linear unit function element-wise.</summary>
-    member a.relu() =
-        let inline fRaw(a:RawTensor) = a.ReluT()
-        let inline fTensor(a:Tensor) = a.relu()
-        let inline dfTensorFwd(cp,ap:Tensor,ad:Tensor) = let sap = ap.sign() in ad * sap.abs() * (sap + 1.) / 2.
-        let inline dfTensorRev(a) = ReluT(a)
-        Tensor.OpUnary(a, fRaw, fTensor, dfTensorFwd, dfTensorRev)
-
-    /// <summary>Applies the leaky rectified linear unit function element-wise</summary>
-    /// <remarks>\[\text{LeakyReLU}(x) = \max(0, x) + \text{negative\_slope} * \min(0, x)\]</remarks>
-    /// <param name="negativeSlope">Controls the angle of the negative slope. Default: 0.01.</param>
-    member a.leakyRelu(?negativeSlope:float) =
-        let negativeSlope = defaultArg negativeSlope 0.01
-        let zeros = a.zerosLike() in zeros.max(a) + negativeSlope * zeros.min(a)
-
-    /// <summary>Applies the sigmoid element-wise function</summary>
-    /// <remarks>\[\text{Sigmoid}(x) = \frac{1}{1 + \exp(-x)}\]</remarks>
-    member a.sigmoid() =
-        let inline fRaw(a:RawTensor) = a.SigmoidT()
-        let inline fTensor(a:Tensor) = a.sigmoid()
-        let inline dfTensorFwd(cp:Tensor,ap:Tensor,ad:Tensor) = ad * cp * (1. - cp)
-        let inline dfTensorRev(a) = SigmoidT(a)
-        Tensor.OpUnary(a, fRaw, fTensor, dfTensorFwd, dfTensorRev)
-
     /// <summary>Applies the exp function element-wise.</summary>
     member a.exp() =
         let inline fRaw(a:RawTensor) = a.ExpT()
@@ -2645,9 +2621,6 @@ type Tensor =
                         | CeilT(a) -> reset (a::tt)
                         | RoundT(a) -> reset (a::tt)
                         | AbsT(a) -> reset (a::tt)
-                        | ReluT(a) -> reset (a::tt)
-                        | SoftplusT(a) -> reset (a::tt)
-                        | SigmoidT(a) -> reset (a::tt)
                         | ExpT(a) -> reset (a::tt)
                         | LogT(a) -> reset (a::tt)
                         | Log10T(a) -> reset (a::tt)
@@ -2804,9 +2777,6 @@ type Tensor =
                         | CeilT(a) -> push (check(a.zerosLike(), a) :: tt)
                         | RoundT(a) -> push (check(a.zerosLike(), a) :: tt)
                         | AbsT(a) -> push (check(td * a.primal.sign(), a) :: tt)
-                        | ReluT(a) -> let sap = a.primal.sign() in push (check(td * (sap.abs()) * (sap + 1.) / 2., a) :: tt)
-                        | SoftplusT(a) -> push (check(td / (1. + a.primal.neg().exp()), a) :: tt)
-                        | SigmoidT(a) -> push (check(td * t.primal * (1. - t.primal), a) :: tt)
                         | ExpT(a) -> push (check(td * t.primal, a) :: tt)
                         | LogT(a) -> push (check(td / a.primal, a) :: tt)
                         | Log10T(a) -> push (check(td / (a.primal * log10Val), a) :: tt)
@@ -2912,9 +2882,6 @@ and TensorOp =
     | CeilT of Tensor
     | RoundT of Tensor
     | AbsT of Tensor
-    | ReluT of Tensor
-    | SoftplusT of Tensor
-    | SigmoidT of Tensor
     | ExpT of Tensor
     | LogT of Tensor
     | Log10T of Tensor
