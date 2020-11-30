@@ -23,8 +23,14 @@
                 let negativeSlope = defaultArg negativeSlope 0.01
                 let zeros = a.zerosLike() in zeros.max(a) + negativeSlope * zeros.min(a)
 
-            /// <summary>Applies the rectified linear unit function element-wise.</summary>
-            member a.elu() = elementwiseOp (fun a -> a.EluT()) (fun t a td -> failwith "deriv of elu NYI") a
+            /// <summary>Applies the exponential linear unit function element-wise.</summary>
+            member a.elu(?alpha: double, ?scale: double, ?inputScale) =
+                let alpha = defaultArg alpha 1.0
+                let scale = defaultArg scale 1.0
+                let inputScale = defaultArg inputScale 1.0
+                elementwiseOp 
+                    (fun a -> a.EluT(alpha, scale, inputScale)) 
+                    (fun t a td -> failwith "deriv of elu NYI") a
 
             /// <summary>Applies the silu function element-wise.</summary>
             member a.silu() = elementwiseOp (fun a -> a.SiluT()) (fun t a td -> failwith "deriv of silu NYI") a

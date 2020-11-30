@@ -353,7 +353,7 @@ type RawTensorCPU<'T when 'T : equality and 'T :> scalar>(values: 'T[], shape: S
     override t.AbsInPlace() = t.SetValues <| t.AbsT()
     override t.ReluInPlace() = t.SetValues <| t.ReluT()
     override t.LeakyReluInPlace(negativeSlope) = t.SetValues <| t.LeakyReluT(negativeSlope)
-    override t.EluInPlace() = t.SetValues <| t.EluT()
+    override t.EluInPlace(alpha, scale, inputScale) = t.SetValues <| t.EluT(alpha, scale, inputScale)
     override t.GeluInPlace() = t.SetValues <| t.GeluT()
     override t.HardsigmoidInPlace() = t.SetValues <| t.HardsigmoidT()
     override t.HardswishInPlace() = t.SetValues <| t.HardswishT()
@@ -832,20 +832,23 @@ module internal RawTensorCPU =
         let result = t.Values |> Array.map (max zero< ^T >) 
         (result, t.Shape)
 
-    let inline LeakyReluT(t: RawTensorCPU< ^T >, negativeSlope: double) : (^T[] * Shape) =
+    let inline LeakyReluT fromDouble (t: RawTensorCPU< ^T >, negativeSlope: double) : (^T[] * Shape) =
+        let result = t.Values |> Array.map (fun x -> if x < zero< ^T > then fromDouble (negativeSlope * double x) else x) 
+        (result, t.Shape)
+
+    let inline EluT(t: RawTensorCPU< ^T >, alpha: double, scale: double, inputScale: double) : (^T[] * Shape) =
         failwith "tbd"
         //let result = t.Values |> Array.map (max zero< ^T >) 
         //(result, t.Shape)
 
-    let inline EluT(t: RawTensorCPU< ^T >) : (^T[] * Shape) =
-        failwith "tbd"
-        //let result = t.Values |> Array.map (max zero< ^T >) 
-        //(result, t.Shape)
-
-    let inline GeluT(t: RawTensorCPU< ^T >) : (^T[] * Shape) =
-        failwith "tbd"
-        //let result = t.Values |> Array.map (max zero< ^T >) 
-        //(result, t.Shape)
+    // Taken from https://mlfromscratch.com/activation-functions-explained/#/
+    let inline GeluT ofDouble (t: RawTensorCPU< ^T >) : (^T[] * Shape) =
+        let result =
+            t.Values |> Array.map (fun x -> 
+                let x = double x
+                let res = 0.5 * x * (1.0 + tanh(0.7978845608 * (x+0.044715*x*x*x)))
+                ofDouble res)
+        (result, t.Shape)
 
     let inline HardsigmoidT(t: RawTensorCPU< ^T >) : (^T[] * Shape) =
         failwith "tbd"
@@ -1000,9 +1003,9 @@ type RawTensorFloat32(values: float32[], shape:Shape, device) =
     override t.RoundT() = RawTensorCPU.RoundT(t) |> create
     override t.AbsT() = RawTensorCPU.AbsT abs t |> create
     override t.ReluT() = RawTensorCPU.ReluT(t) |> create
-    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT(t, negativeSlope) |> create
-    override t.EluT() = RawTensorCPU.EluT(t) |> create
-    override t.GeluT() = RawTensorCPU.GeluT(t) |> create
+    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT float32 (t, negativeSlope) |> create
+    override t.EluT(alpha, scale, inputScale) = RawTensorCPU.EluT(t, alpha, scale, inputScale) |> create
+    override t.GeluT() = RawTensorCPU.GeluT float32 (t) |> create
     override t.HardsigmoidT() = RawTensorCPU.HardsigmoidT(t) |> create
     override t.HardswishT() = RawTensorCPU.HardswishT(t) |> create
     override t.Relu6T() = RawTensorCPU.Relu6T(t) |> create
@@ -1095,9 +1098,9 @@ type RawTensorFloat64(values: double[], shape:Shape, device) =
     override t.RoundT() = RawTensorCPU.RoundT(t) |> create
     override t.AbsT() = RawTensorCPU.AbsT abs t |> create
     override t.ReluT() = RawTensorCPU.ReluT(t) |> create
-    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT(t, negativeSlope) |> create
-    override t.EluT() = RawTensorCPU.EluT(t) |> create
-    override t.GeluT() = RawTensorCPU.GeluT(t) |> create
+    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT double (t, negativeSlope) |> create
+    override t.EluT(alpha, scale, inputScale) = RawTensorCPU.EluT(t, alpha, scale, inputScale) |> create
+    override t.GeluT() = RawTensorCPU.GeluT double (t) |> create
     override t.HardsigmoidT() = RawTensorCPU.HardsigmoidT(t) |> create
     override t.HardswishT() = RawTensorCPU.HardswishT(t) |> create
     override t.Relu6T() = RawTensorCPU.Relu6T(t) |> create
@@ -1179,9 +1182,9 @@ type RawTensorInt8(values: int8[], shape:Shape, device) =
     override t.SignT() = RawTensorCPU.SignT (sign >> int8) t |> create
     override t.AbsT() = RawTensorCPU.AbsT abs t |> create
     override t.ReluT() = RawTensorCPU.ReluT(t) |> create
-    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT(t, negativeSlope) |> create
-    override t.EluT() = RawTensorCPU.EluT(t) |> create
-    override t.GeluT() = RawTensorCPU.GeluT(t) |> create
+    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT int8 (t, negativeSlope) |> create
+    override t.EluT(alpha, scale, inputScale) = RawTensorCPU.EluT(t, alpha, scale, inputScale) |> create
+    override t.GeluT() = RawTensorCPU.GeluT int8 (t) |> create
     override t.HardsigmoidT() = RawTensorCPU.HardsigmoidT(t) |> create
     override t.HardswishT() = RawTensorCPU.HardswishT(t) |> create
     override t.Relu6T() = RawTensorCPU.Relu6T(t) |> create
@@ -1271,9 +1274,9 @@ type RawTensorByte(values: byte[], shape:Shape, device) =
     override t.SignT() = RawTensorCPU.SignT (min 1uy) t |> create
     override t.AbsT() = RawTensorCPU.AbsT id t |> create
     override t.ReluT() = RawTensorCPU.ReluT(t) |> create
-    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT(t, negativeSlope) |> create
-    override t.EluT() = RawTensorCPU.EluT(t) |> create
-    override t.GeluT() = RawTensorCPU.GeluT(t) |> create
+    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT byte (t, negativeSlope) |> create
+    override t.EluT(alpha, scale, inputScale) = RawTensorCPU.EluT(t, alpha, scale, inputScale) |> create
+    override t.GeluT() = RawTensorCPU.GeluT byte (t) |> create
     override t.HardsigmoidT() = RawTensorCPU.HardsigmoidT(t) |> create
     override t.HardswishT() = RawTensorCPU.HardswishT(t) |> create
     override t.Relu6T() = RawTensorCPU.Relu6T(t) |> create
@@ -1363,9 +1366,9 @@ type RawTensorInt16(values: int16[], shape:Shape, device) =
     override t.SignT() = RawTensorCPU.SignT (sign >> int16) t |> create
     override t.AbsT() = RawTensorCPU.AbsT abs t |> create
     override t.ReluT() = RawTensorCPU.ReluT(t) |> create
-    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT(t, negativeSlope) |> create
-    override t.EluT() = RawTensorCPU.EluT(t) |> create
-    override t.GeluT() = RawTensorCPU.GeluT(t) |> create
+    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT int16 (t, negativeSlope) |> create
+    override t.EluT(alpha, scale, inputScale) = RawTensorCPU.EluT(t, alpha, scale, inputScale) |> create
+    override t.GeluT() = RawTensorCPU.GeluT int16 (t) |> create
     override t.HardsigmoidT() = RawTensorCPU.HardsigmoidT(t) |> create
     override t.HardswishT() = RawTensorCPU.HardswishT(t) |> create
     override t.Relu6T() = RawTensorCPU.Relu6T(t) |> create
@@ -1455,9 +1458,9 @@ type RawTensorInt32(values: int32[], shape:Shape, device) =
     override t.SignT() = RawTensorCPU.SignT (sign >> int32) t |> create
     override t.AbsT() = RawTensorCPU.AbsT abs t |> create
     override t.ReluT() = RawTensorCPU.ReluT(t) |> create
-    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT(t, negativeSlope) |> create
-    override t.EluT() = RawTensorCPU.EluT(t) |> create
-    override t.GeluT() = RawTensorCPU.GeluT(t) |> create
+    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT int32 (t, negativeSlope) |> create
+    override t.EluT(alpha, scale, inputScale) = RawTensorCPU.EluT(t, alpha, scale, inputScale) |> create
+    override t.GeluT() = RawTensorCPU.GeluT int32 (t) |> create
     override t.HardsigmoidT() = RawTensorCPU.HardsigmoidT(t) |> create
     override t.HardswishT() = RawTensorCPU.HardswishT(t) |> create
     override t.Relu6T() = RawTensorCPU.Relu6T(t) |> create
@@ -1551,9 +1554,9 @@ type RawTensorInt64(values: int64[], shape:Shape, device) =
     override t.SignT() = RawTensorCPU.SignT (sign >> int64) t |> create
     override t.AbsT() = RawTensorCPU.AbsT abs t |> create
     override t.ReluT() = RawTensorCPU.ReluT(t) |> create
-    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT(t, negativeSlope) |> create
-    override t.EluT() = RawTensorCPU.EluT(t) |> create
-    override t.GeluT() = RawTensorCPU.GeluT(t) |> create
+    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT int64 (t, negativeSlope) |> create
+    override t.EluT(alpha, scale, inputScale) = RawTensorCPU.EluT(t, alpha, scale, inputScale) |> create
+    override t.GeluT() = RawTensorCPU.GeluT int64 (t) |> create
     override t.HardsigmoidT() = RawTensorCPU.HardsigmoidT(t) |> create
     override t.HardswishT() = RawTensorCPU.HardswishT(t) |> create
     override t.Relu6T() = RawTensorCPU.Relu6T(t) |> create
@@ -1647,7 +1650,7 @@ type RawTensorBool(values: bool[], shape:Shape, device) =
     override t.NegT() = opNotSupported "NegT" t.Dtype
     override t.AbsT() = opNotSupported "AbsT" t.Dtype
     override t.ReluT() = opNotSupported "ReluT" t.Dtype
-    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT(t, negativeSlope) |> create
+    override t.LeakyReluT(_negativeSlope) = opNotSupported "LeakyReluT" t.Dtype
     override t.SoftplusT() = opNotSupported "SoftplusT" t.Dtype
     override t1.PowTT(t2) = opNotSupported2 "PowTT" t1.Dtype t2.Dtype
     override t2.PowFromT0T(_t1) = opNotSupported "PowT0T" t2.Dtype
@@ -1655,7 +1658,7 @@ type RawTensorBool(values: bool[], shape:Shape, device) =
     override t.FloorT() = opNotSupported "FloorT" t.Dtype
     override t.CeilT() = opNotSupported "CeilT" t.Dtype
     override t.RoundT() = opNotSupported "RoundT" t.Dtype
-    override t.EluT() = opNotSupported "EluT" t.Dtype
+    override t.EluT(_, _, _) = opNotSupported "EluT" t.Dtype
     override t.GeluT() = opNotSupported "GeluT" t.Dtype
     override t.HardsigmoidT() = opNotSupported "HardsigmoidT" t.Dtype
     override t.HardswishT() = opNotSupported "HardswishT" t.Dtype
@@ -1749,9 +1752,9 @@ type RawTensorFloat16(values: float32[], shape:Shape, device) =
     override t.RoundT() = RawTensorCPU.RoundT(t) |> create
     override t.AbsT() = RawTensorCPU.AbsT abs t |> create
     override t.ReluT() = RawTensorCPU.ReluT(t) |> create
-    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT(t, negativeSlope) |> create
-    override t.EluT() = RawTensorCPU.EluT(t) |> create
-    override t.GeluT() = RawTensorCPU.GeluT(t) |> create
+    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT float32 (t, negativeSlope) |> create
+    override t.EluT(alpha, scale, inputScale) = RawTensorCPU.EluT(t, alpha, scale, inputScale) |> create
+    override t.GeluT() = RawTensorCPU.GeluT float32 (t) |> create
     override t.HardsigmoidT() = RawTensorCPU.HardsigmoidT(t) |> create
     override t.HardswishT() = RawTensorCPU.HardswishT(t) |> create
     override t.Relu6T() = RawTensorCPU.Relu6T(t) |> create
@@ -1844,9 +1847,9 @@ type RawTensorBFloat16(values: float32[], shape:Shape, device) =
     override t.RoundT() = RawTensorCPU.RoundT(t) |> create
     override t.AbsT() = RawTensorCPU.AbsT abs t |> create
     override t.ReluT() = RawTensorCPU.ReluT(t) |> create
-    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT(t, negativeSlope) |> create
-    override t.EluT() = RawTensorCPU.EluT(t) |> create
-    override t.GeluT() = RawTensorCPU.GeluT(t) |> create
+    override t.LeakyReluT(negativeSlope) = RawTensorCPU.LeakyReluT float32 (t, negativeSlope) |> create
+    override t.EluT(alpha, scale, inputScale) = RawTensorCPU.EluT(t, alpha, scale, inputScale) |> create
+    override t.GeluT() = RawTensorCPU.GeluT float32 (t) |> create
     override t.HardsigmoidT() = RawTensorCPU.HardsigmoidT(t) |> create
     override t.HardswishT() = RawTensorCPU.HardswishT(t) |> create
     override t.Relu6T() = RawTensorCPU.Relu6T(t) |> create

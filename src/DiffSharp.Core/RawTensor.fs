@@ -512,7 +512,7 @@ type RawTensor() =
     abstract LeakyReluT: negativeSlope: double -> RawTensor
 
     /// Returns the element-wise elu of the tensor
-    abstract EluT: unit -> RawTensor
+    abstract EluT: alpha: double * scale: double * input_scale: double -> RawTensor
 
     /// Returns the element-wise gelu of the tensor
     abstract GeluT: unit -> RawTensor
@@ -761,7 +761,7 @@ type RawTensor() =
     abstract LeakyReluInPlace: negativeSlope: double -> unit
 
     /// Returns the element-wise elu of the tensor
-    abstract EluInPlace: unit -> unit
+    abstract EluInPlace: alpha: double * scale: double * inputScale: double -> unit
 
     /// Returns the element-wise gelu of the tensor
     abstract GeluInPlace: unit -> unit
