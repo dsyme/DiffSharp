@@ -841,7 +841,7 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
     override t.EluT(alpha, scale, inputScale) =
         match dtype with 
         | Dtype.Bool -> opNotSupported "EluT" dtype
-        | _ ->   t.MakeLike(tt.elu())
+        | _ ->   t.MakeLike(tt.Elu(toTorchScalar alpha, toTorchScalar scale, toTorchScalar inputScale))
 
     override t.GeluT() =
         match dtype with 
@@ -1115,9 +1115,13 @@ type TorchRawTensor(tt: TorchTensor, shape: Shape, dtype: Dtype, device: Device)
 
     override _.Relu6InPlace() = checkMutable(); tt.Relu6InPlace() |> ignore
 
-    override _.LeakyReluInPlace(negativeSlope) = checkMutable(); tt.LeakyReluInPlace(toTorchScalar negativeSlope) |> ignore
+    override _.LeakyReluInPlace(negativeSlope) = 
+        checkMutable();
+        tt.LeakyReluInPlace(toTorchScalar negativeSlope) |> ignore
 
-    override _.EluInPlace(alpha, scale, inputScale) = checkMutable(); tt.EluInPlace() |> ignore
+    override _.EluInPlace(alpha, scale, inputScale) =
+        checkMutable()
+        tt.EluInPlace(toTorchScalar alpha, toTorchScalar scale, toTorchScalar inputScale) |> ignore
 
     override _.GeluInPlace() = checkMutable(); tt <- tt.Gelu() 
 
