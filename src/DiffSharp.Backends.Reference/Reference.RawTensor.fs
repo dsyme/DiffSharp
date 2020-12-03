@@ -209,12 +209,20 @@ type RawTensorCPU<'T when 'T : equality and 'T :> scalar>(values: 'T[], shape: S
         let result = t.ZerosLike(newShape) :?> RawTensorCPU<'T>
         let rec transpose (shape:Shape) externalCoords = 
             if shape.Length = 1 then
+<<<<<<< HEAD
                 for i=0 to shape.Values.[0]-1 do
+=======
+                for i=0 to shape.[0].Value-1 do
+>>>>>>> feature/sym
                     let globalCoords = Array.append externalCoords [|i|]
                     let transposedCoords = Array.permute (fun i -> inversePermutation.[i]) globalCoords
                     result.[transposedCoords] <- t.[globalCoords]
             else
+<<<<<<< HEAD
                 for i=0 to shape.Values.[0]-1 do
+=======
+                for i=0 to shape.[0].Value-1 do
+>>>>>>> feature/sym
                     transpose shape.[1..] (Array.append externalCoords [|i|])
         transpose t.Shape [||]        
         upcast result

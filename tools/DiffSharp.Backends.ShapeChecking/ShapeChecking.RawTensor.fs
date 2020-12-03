@@ -119,8 +119,8 @@ type ShapeCheckingTensor(shape: Shape, dtype: Dtype, device: Device) =
         outShapes |> Array.map (fun outShape -> t.MakeLike(outShape))
 
     override t.PermuteT(permutation) =
-        let _, outShape = Shape.checkCanPermute t.Shape permutation
-        t.MakeLike(outShape)
+        let _, newShape = Shape.checkCanPermute t.Shape permutation
+        t.MakeLike(newShape)
 
     override t.TransposeT(dim0, dim1) =
         Shape.checkCanTranspose t.Shape dim0 dim1
