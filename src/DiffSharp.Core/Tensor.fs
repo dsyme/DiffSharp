@@ -623,7 +623,7 @@ type Tensor =
     /// <remarks>The resulting tensor does not participate in reverse or forward differentiation. It can be used as input to another operation such as <c>dsharp.gather</c>.</remarks>
     member a.argmax(dim:int, ?keepDim: bool) =
         let keepDim = defaultArg keepDim false
-        Shape.checkCanMinMaxReduce dim keepDim a.shape |> ignore
+        Shape.checkCanMinMaxReduce dim keepDim a.shapex |> ignore
         a.primalRaw.MaxReduceT(dim, keepdim=keepDim) |> snd |> TensorC
 
     /// Gets the index of a minimum value in the tensor.
@@ -634,7 +634,7 @@ type Tensor =
     /// <remarks>The resulting tensor does not participate in reverse or forward differentiation. It can be used as input to another operation such as <c>dsharp.gather</c>.</remarks>
     member a.argmin(dim: int, ?keepDim: bool) =
         let keepDim = defaultArg keepDim false
-        Shape.checkCanMinMaxReduce dim keepDim a.shape |> ignore
+        Shape.checkCanMinMaxReduce dim keepDim a.shapex |> ignore
         a.primalRaw.MinReduceT(dim, keepdim=keepDim) |> snd |> TensorC
 
     /// Returns the maximum value of all elements in the input tensor.
