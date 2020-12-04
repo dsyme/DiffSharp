@@ -297,34 +297,28 @@ type ShapeCheckingTensor(shape: Shape, dtype: Dtype, device: Device) =
         t1.MakeLike(outputShape) 
 
     override t1.AvgPool1D(kernelSize, stride, padding) =
-        let _batchSize, _channels, _inputSize, _outputSize, outputShape = Shape.checkCanAvgpool1d dtype t1.Shape kernelSize stride padding
+        let _, _, _, _, outputShape = Shape.checkCanAvgpool1d dtype t1.Shape kernelSize stride padding
         t1.MakeLike(outputShape) 
 
     override t1.AvgPool2D(kernelSize, stride, padding) = 
-        let _batchSize, _channels, _inputSize, _kernelSize, _outputSize, outputShape = Shape.checkCanAvgpool2d dtype t1.Shape kernelSize stride padding
+        let _, _, _, _, _, outputShape = Shape.checkCanAvgpool2d dtype t1.Shape kernelSize stride padding
         t1.MakeLike(outputShape) 
 
     override t1.AvgPool3D(kernelSize, stride, padding) =
-        let _batchSize, _channels, _inputSize, _kernelSize, _outputSize, outputShape = Shape.checkCanAvgpool3d dtype t1.Shape kernelSize stride padding
+        let _, _, _, _, _, outputShape = Shape.checkCanAvgpool3d dtype t1.Shape kernelSize stride padding
         t1.MakeLike(outputShape) 
 
     override t1.AvgPoolReverse1D(originalInput, kernelSize, stride, padding) =
-        match dtype with 
-        | Dtype.Bool | Dtype.Integral -> opNotSupported "AvgPoolReverse1D" dtype
-        | _ ->
-        t1.MakeLike(originalInput.Shape) 
+        let _, _, _, _, outputShape = Shape.checkCanAvgpool1d t1.Dtype originalInput.Shape kernelSize stride padding
+        t1.MakeLike(outputShape) 
 
     override t1.AvgPoolReverse2D(originalInput, kernelSize, stride, padding) = 
-        match dtype with 
-        | Dtype.Bool | Dtype.Integral -> opNotSupported "AvgPoolReverse1D" dtype
-        | _ ->
-        t1.MakeLike(originalInput.Shape) 
+        let _, _, _, _, _, outputShape = Shape.checkCanAvgpool2d t1.Dtype originalInput.Shape kernelSize stride padding
+        t1.MakeLike(outputShape) 
 
     override t1.AvgPoolReverse3D(originalInput, kernelSize, stride, padding) =
-        match dtype with 
-        | Dtype.Bool | Dtype.Integral -> opNotSupported "AvgPoolReverse1D" dtype
-        | _ ->
-        t1.MakeLike(originalInput.Shape) 
+        let _, _, _, _, _, outputShape = Shape.checkCanAvgpool3d t1.Dtype originalInput.Shape kernelSize stride padding
+        t1.MakeLike(outputShape) 
 
     override t.NegT() = t :> _
 
