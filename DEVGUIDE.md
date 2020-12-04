@@ -85,10 +85,7 @@ By default in-branch testing is only done on CPU.  To enable on GPU/CUDA you mus
 
 3. Verify that `dsharp.isCudaEnabled()` is returning true and GPU testing is enabled in `TestUtil.fs`.
 
-
-
 ## Micro Performance Benchmarking 
-
 
 Python numbers must be collected in a separate run, they are currently injected back into source code (ugh)
 to get figures in one report.  There are better ways to do this.
